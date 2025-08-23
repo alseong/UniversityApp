@@ -175,10 +175,19 @@ export const signInWithGoogleAction = async () => {
   });
 
   if (error) {
+    console.error("Google sign-in error:", error);
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect(data.url);
+  if (data?.url) {
+    return redirect(data.url);
+  }
+
+  return encodedRedirect(
+    "error",
+    "/sign-in",
+    "Failed to initiate Google sign-in",
+  );
 };
 
 export const submitAdmissionDataAction = async (formData: FormData) => {
