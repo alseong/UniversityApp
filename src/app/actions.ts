@@ -8,7 +8,7 @@ import { createClient } from "../../supabase/server";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
-  const fullName = formData.get("full_name")?.toString() || '';
+  const fullName = formData.get("full_name")?.toString() || "";
   const supabase = await createClient();
   const origin = headers().get("origin");
 
@@ -20,7 +20,10 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { data: { user }, error } = await supabase.auth.signUp({
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -28,12 +31,11 @@ export const signUpAction = async (formData: FormData) => {
       data: {
         full_name: fullName,
         email: email,
-      }
+      },
     },
   });
 
   console.log("After signUp", error);
-
 
   if (error) {
     console.error(error.code + " " + error.message);
@@ -42,23 +44,21 @@ export const signUpAction = async (formData: FormData) => {
 
   if (user) {
     try {
-      const { error: updateError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          name: fullName,
-          full_name: fullName,
-          email: email,
-          user_id: user.id,
-          token_identifier: user.id,
-          created_at: new Date().toISOString()
-        });
+      const { error: updateError } = await supabase.from("users").insert({
+        id: user.id,
+        name: fullName,
+        full_name: fullName,
+        email: email,
+        user_id: user.id,
+        token_identifier: user.id,
+        created_at: new Date().toISOString(),
+      });
 
       if (updateError) {
-        console.error('Error updating user profile:', updateError);
+        console.error("Error updating user profile:", updateError);
       }
     } catch (err) {
-      console.error('Error in user profile creation:', err);
+      console.error("Error in user profile creation:", err);
     }
   }
 
@@ -161,4 +161,86 @@ export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   return redirect("/sign-in");
+};
+
+export const signInWithGoogleAction = async () => {
+  const supabase = await createClient();
+  const origin = headers().get("origin");
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback?redirect_to=/dashboard`,
+    },
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  return redirect(data.url);
+};
+
+export const submitAdmissionDataAction = async (formData: FormData) => {
+  const supabase = await createClient();
+
+  // Get user (optional for anonymous submissions)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const universityAttendance = formData
+    .get("university_attendance")
+    ?.toString();
+  const specializedProgram = formData.get("specialized_program")?.toString();
+
+  // Create admission submission
+  const { data: submission, error: submissionError } = await supabase
+    .from("admission_submissions")
+    .insert({
+      user_id: user?.id || null,
+      university_attendance: universityAttendance,
+      specialized_program: specializedProgram,
+    })
+    .select()
+    .single();
+
+  if (submissionError) {
+    return encodedRedirect(
+      "error",
+      "/dashboard",
+      "Failed to submit admission data",
+    );
+  }
+
+  // Process university applications
+  const universities = JSON.parse(
+    formData.get("universities")?.toString() || "[]",
+  );
+  for (const uni of universities) {
+    await supabase.from("university_applications").insert({
+      submission_id: submission.id,
+      university_name: uni.name,
+      status: uni.status,
+    });
+  }
+
+  // Process grades
+  const grades = JSON.parse(formData.get("grades")?.toString() || "[]");
+  for (const grade of grades) {
+    await supabase.from("grades").insert({
+      submission_id: submission.id,
+      grade_level: grade.level,
+      course_name: grade.courseName,
+      course_code: grade.courseCode,
+      grade: grade.grade,
+      ib_ap_mark: grade.ibApMark || null,
+    });
+  }
+
+  return encodedRedirect(
+    "success",
+    "/dashboard",
+    "Admission data submitted successfully!",
+  );
 };
