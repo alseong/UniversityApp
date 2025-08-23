@@ -14,6 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      admission_submissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          specialized_program: string | null
+          university_attendance: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          specialized_program?: string | null
+          university_attendance?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          specialized_program?: string | null
+          university_attendance?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      grades: {
+        Row: {
+          course_code: string | null
+          course_name: string
+          created_at: string | null
+          grade: string
+          grade_level: string
+          ib_ap_mark: number | null
+          id: string
+          submission_id: string | null
+        }
+        Insert: {
+          course_code?: string | null
+          course_name: string
+          created_at?: string | null
+          grade: string
+          grade_level: string
+          ib_ap_mark?: number | null
+          id?: string
+          submission_id?: string | null
+        }
+        Update: {
+          course_code?: string | null
+          course_name?: string
+          created_at?: string | null
+          grade?: string
+          grade_level?: string
+          ib_ap_mark?: number | null
+          id?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "admission_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      university_applications: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: string
+          submission_id: string | null
+          university_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status: string
+          submission_id?: string | null
+          university_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: string
+          submission_id?: string | null
+          university_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "university_applications_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "admission_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
