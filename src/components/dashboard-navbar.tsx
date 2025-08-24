@@ -23,6 +23,20 @@ export default function DashboardNavbar() {
           <Link href="/" prefetch className="text-xl font-bold text-blue-600">
             Admit.me
           </Link>
+          <div className="hidden md:flex items-center gap-6 ml-8">
+            <Link
+              href="/dashboard"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/submit-data"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Your Admissions Data
+            </Link>
+          </div>
         </div>
         <div className="flex gap-4 items-center">
           <DropdownMenu>
