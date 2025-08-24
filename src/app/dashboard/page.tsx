@@ -63,6 +63,9 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
   ]);
 
   const [universityAttendance, setUniversityAttendance] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -75,17 +78,58 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
         return;
       }
       setUser(user);
+
+      // Load existing admission data if available
+      await loadExistingData(user.id, supabase);
       setLoading(false);
     };
     checkUser();
   }, [router]);
 
+  const loadExistingData = async (userId: string, supabase: any) => {
+    try {
+      // Try to load from the new simplified structure first
+      const { data: admissionData } = await supabase
+        .from("admissions_data")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (admissionData) {
+        // Load data from the simplified structure
+        setUniversityAttendance(admissionData.university_attendance || "");
+        setUniversities(
+          admissionData.universities || [{ name: "", status: "" }]
+        );
+        setGrades(
+          admissionData.grades || [
+            {
+              level: "grade_11",
+              courseName: "",
+              courseCode: "",
+              grade: "",
+              specialization: "na",
+              ibApMark: undefined,
+              otherSpecialization: "",
+            },
+          ]
+        );
+        setLastSaved(new Date(admissionData.updated_at));
+      }
+    } catch (error) {
+      // If no data exists or error, keep default empty state
+      console.log("No existing data found or error loading:", error);
+    }
+  };
+
   const addUniversity = () => {
     setUniversities([...universities, { name: "", status: "" }]);
+    setHasUnsavedChanges(true);
   };
 
   const removeUniversity = (index: number) => {
     setUniversities(universities.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
   };
 
   const updateUniversity = (
@@ -96,6 +140,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
     const updated = [...universities];
     updated[index][field] = value;
     setUniversities(updated);
+    setHasUnsavedChanges(true);
   };
 
   const addGrade = () => {
@@ -111,10 +156,12 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
         otherSpecialization: "",
       },
     ]);
+    setHasUnsavedChanges(true);
   };
 
   const removeGrade = (index: number) => {
     setGrades(grades.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
   };
 
   const updateGrade = (
@@ -125,6 +172,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
     const updated = [...grades];
     (updated[index] as any)[field] = value;
     setGrades(updated);
+    setHasUnsavedChanges(true);
   };
 
   const validateGrades = () => {
@@ -139,6 +187,80 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
 
       return true;
     });
+  };
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (!user || !hasUnsavedChanges) return;
+
+    const autoSaveTimer = setTimeout(() => {
+      handleSave(true); // Pass true for silent auto-save
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [universities, grades, universityAttendance, hasUnsavedChanges]);
+
+  const handleSave = async (isAutoSave = false) => {
+    if (!validateGrades()) {
+      if (!isAutoSave) {
+        alert(
+          "Please ensure all IB marks are between 1-7 and AP marks are between 1-5 before saving."
+        );
+      }
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const supabase = createClient();
+      const saveData = {
+        user_id: user.id,
+        university_attendance: universityAttendance,
+        universities: universities,
+        grades: grades,
+      };
+
+      // Try to update existing data first, if it doesn't exist, insert new
+      const { data: existingData } = await supabase
+        .from("admissions_data")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      let result;
+      if (existingData) {
+        // Update existing data
+        result = await supabase
+          .from("admissions_data")
+          .update({
+            ...saveData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+      } else {
+        // Insert new data
+        result = await supabase.from("admissions_data").insert(saveData);
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+
+      if (!isAutoSave) {
+        alert("Data saved successfully!");
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      if (!isAutoSave) {
+        alert("Failed to save data. Please try again.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (loading) {
@@ -162,9 +284,36 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
           <header className="mb-8">
-            <h1 className="text-3xl font-bold mb-4">
-              Submit Your Admission Data
-            </h1>
+            <div className="flex justify-between items-start mb-4">
+              <h1 className="text-3xl font-bold">Your Admission Data</h1>
+
+              {/* Top Save Button */}
+              <div className="flex flex-col items-end space-y-1">
+                <Button
+                  onClick={() => handleSave(false)}
+                  disabled={!validateGrades() || isSaving}
+                  className={`px-6 py-2 ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+
+                {/* Status indicator */}
+                <div className="text-xs text-right">
+                  {isSaving && <p className="text-blue-600">Auto-saving...</p>}
+                  {lastSaved && !isSaving && (
+                    <p className="text-gray-500">
+                      {hasUnsavedChanges
+                        ? "Unsaved changes"
+                        : `Last saved: ${lastSaved.toLocaleTimeString()}`}
+                    </p>
+                  )}
+                  {!validateGrades() && (
+                    <p className="text-red-600">Fix validation errors</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <InfoIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -173,42 +322,17 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                     Join Our Waitlist
                   </h3>
                   <p className="text-blue-800 text-sm">
-                    Help us build the most comprehensive university admissions
-                    database. Your data will be aggregated anonymously to help
-                    future students make informed decisions. We'll launch once
-                    we have enough data to provide meaningful insights.
+                    Enter and save your admission data. You can update this
+                    information anytime and we'll keep your latest data stored.
+                    Your data will be aggregated anonymously to help future
+                    students make informed decisions.
                   </p>
                 </div>
               </div>
             </div>
           </header>
 
-          <form
-            action={submitAdmissionDataAction}
-            className="space-y-8"
-            onSubmit={(e) => {
-              if (!validateGrades()) {
-                e.preventDefault();
-                alert(
-                  "Please ensure all IB marks are between 1-7 and AP marks are between 1-5 before submitting."
-                );
-                return false;
-              }
-            }}
-          >
-            {/* Hidden fields to pass the JSON data */}
-            <input
-              type="hidden"
-              name="universities"
-              value={JSON.stringify(universities)}
-            />
-            <input type="hidden" name="grades" value={JSON.stringify(grades)} />
-
-            <input
-              type="hidden"
-              name="university_attendance"
-              value={universityAttendance}
-            />
+          <div className="space-y-8">
             {/* University Attendance */}
             <Card>
               <CardHeader>
@@ -220,7 +344,10 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
               <CardContent>
                 <Select
                   value={universityAttendance}
-                  onValueChange={setUniversityAttendance}
+                  onValueChange={(value) => {
+                    setUniversityAttendance(value);
+                    setHasUnsavedChanges(true);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select attendance period" />
@@ -506,24 +633,36 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
               </CardContent>
             </Card>
 
-            {/* Submit Button */}
+            {/* Save Button */}
             <div className="flex flex-col items-center space-y-2">
-              <SubmitButton
+              <Button
+                onClick={() => handleSave(false)}
+                disabled={!validateGrades() || isSaving}
                 className={`px-8 py-3 text-lg ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
-                disabled={!validateGrades()}
-                pendingText="Submitting..."
               >
-                Submit Admission Data
-              </SubmitButton>
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
               {!validateGrades() && (
                 <p className="text-sm text-red-600 text-center">
-                  Please fix the IB/AP mark validation errors before submitting.
+                  Please fix the IB/AP mark validation errors before saving.
+                </p>
+              )}
+              {isSaving && (
+                <p className="text-sm text-blue-600 text-center">
+                  Auto-saving...
+                </p>
+              )}
+              {lastSaved && !isSaving && (
+                <p className="text-sm text-gray-600 text-center">
+                  {hasUnsavedChanges
+                    ? "Unsaved changes"
+                    : `Last saved: ${lastSaved.toLocaleString()}`}
                 </p>
               )}
             </div>
 
             <FormMessage message={searchParams} />
-          </form>
+          </div>
         </div>
       </main>
     </>
