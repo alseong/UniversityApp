@@ -26,7 +26,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
       <Navbar />
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
-          <form className="flex flex-col space-y-6">
+          <div className="flex flex-col space-y-6">
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
               <p className="text-sm text-muted-foreground">
@@ -40,51 +40,53 @@ export default async function SignInPage({ searchParams }: LoginProps) {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
+            <form className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email
                   </Label>
-                  <Link
-                    className="text-xs text-muted-foreground hover:text-foreground hover:underline transition-all"
-                    href="/forgot-password"
-                  >
-                    Forgot Password?
-                  </Link>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
+                    className="w-full"
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  placeholder="Your password"
-                  required
-                  className="w-full"
-                />
-              </div>
-            </div>
 
-            <SubmitButton
-              className="w-full"
-              pendingText="Signing in..."
-              formAction={signInAction}
-            >
-              Sign in
-            </SubmitButton>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <Link
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline transition-all"
+                      href="/forgot-password"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    placeholder="Your password"
+                    required
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <SubmitButton
+                className="w-full"
+                pendingText="Signing in..."
+                formAction={signInAction}
+              >
+                Sign in
+              </SubmitButton>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -97,11 +99,10 @@ export default async function SignInPage({ searchParams }: LoginProps) {
               </div>
             </div>
 
-            <form>
-              <SubmitButton
-                className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50"
-                pendingText="Signing in with Google..."
-                formAction={signInWithGoogleAction}
+            <form action={signInWithGoogleAction}>
+              <button
+                type="submit"
+                className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors"
               >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path
@@ -122,11 +123,11 @@ export default async function SignInPage({ searchParams }: LoginProps) {
                   />
                 </svg>
                 Continue with Google
-              </SubmitButton>
+              </button>
             </form>
 
             <FormMessage message={message} />
-          </form>
+          </div>
         </div>
       </div>
     </>

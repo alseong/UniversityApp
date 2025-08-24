@@ -25,7 +25,7 @@ export default async function Home() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why Admitly</h2>
+            <h2 className="text-3xl font-bold mb-4">Why Admit.me</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Get real insights into university admissions with data-driven
               transparency that helps students make informed decisions.

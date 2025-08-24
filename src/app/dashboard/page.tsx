@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardNavbar from "@/components/dashboard-navbar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +25,7 @@ import { Plus, Trash2, InfoIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/navbar";
+import DashboardNavbar from "@/components/dashboard-navbar";
 
 interface University {
   name: string;
@@ -41,9 +40,11 @@ interface Grade {
   ibApMark?: number;
 }
 
-export default function Dashboard() {
+export default function Dashboard({ searchParams }: { searchParams?: any }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
   const [universities, setUniversities] = useState<University[]>([
     { name: "", status: "" },
   ]);
@@ -58,7 +59,6 @@ export default function Dashboard() {
   ]);
   const [specializedProgram, setSpecializedProgram] = useState("");
   const [universityAttendance, setUniversityAttendance] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -66,11 +66,15 @@ export default function Dashboard() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
       setUser(user);
       setLoading(false);
     };
     checkUser();
-  }, []);
+  }, [router]);
 
   const addUniversity = () => {
     setUniversities([...universities, { name: "", status: "" }]);
@@ -83,7 +87,7 @@ export default function Dashboard() {
   const updateUniversity = (
     index: number,
     field: keyof University,
-    value: string,
+    value: string
   ) => {
     const updated = [...universities];
     updated[index][field] = value;
@@ -110,26 +114,17 @@ export default function Dashboard() {
   const updateGrade = (
     index: number,
     field: keyof Grade,
-    value: string | number,
+    value: string | number | undefined
   ) => {
     const updated = [...grades];
-    updated[index][field] = value as any;
+    (updated[index] as any)[field] = value;
     setGrades(updated);
-  };
-
-  const handleSubmit = async (formData: FormData) => {
-    formData.append("universities", JSON.stringify(universities));
-    formData.append("grades", JSON.stringify(grades));
-    formData.append("specialized_program", specializedProgram);
-    formData.append("university_attendance", universityAttendance);
-
-    await submitAdmissionDataAction(formData);
   };
 
   if (loading) {
     return (
       <>
-        <Navbar />
+        <DashboardNavbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -142,7 +137,7 @@ export default function Dashboard() {
 
   return (
     <>
-      {user ? <DashboardNavbar /> : <Navbar />}
+      <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
@@ -166,29 +161,26 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            {!user && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <InfoIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-semibold text-yellow-900 mb-1">
-                      Anonymous Submission
-                    </h3>
-                    <p className="text-yellow-800 text-sm">
-                      You're submitting anonymously. Consider{" "}
-                      <a href="/sign-in" className="underline font-medium">
-                        signing in
-                      </a>{" "}
-                      to save your data for future use and access additional
-                      features.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </header>
 
-          <form action={handleSubmit} className="space-y-8">
+          <form action={submitAdmissionDataAction} className="space-y-8">
+            {/* Hidden fields to pass the JSON data */}
+            <input
+              type="hidden"
+              name="universities"
+              value={JSON.stringify(universities)}
+            />
+            <input type="hidden" name="grades" value={JSON.stringify(grades)} />
+            <input
+              type="hidden"
+              name="specialized_program"
+              value={specializedProgram}
+            />
+            <input
+              type="hidden"
+              name="university_attendance"
+              value={universityAttendance}
+            />
             {/* University Attendance */}
             <Card>
               <CardHeader>
@@ -404,7 +396,7 @@ export default function Dashboard() {
                           updateGrade(
                             index,
                             "ibApMark",
-                            parseInt(e.target.value) || undefined,
+                            parseInt(e.target.value) || undefined
                           )
                         }
                       />
@@ -445,6 +437,8 @@ export default function Dashboard() {
                 Submit Admission Data
               </SubmitButton>
             </div>
+
+            <FormMessage message={searchParams} />
           </form>
         </div>
       </main>

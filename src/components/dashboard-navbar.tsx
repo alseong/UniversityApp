@@ -21,7 +21,7 @@ export default function DashboardNavbar() {
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Link href="/" prefetch className="text-xl font-bold text-blue-600">
-            Admitly
+            Admit.me
           </Link>
         </div>
         <div className="flex gap-4 items-center">
@@ -35,7 +35,7 @@ export default function DashboardNavbar() {
               <DropdownMenuItem
                 onClick={async () => {
                   await supabase.auth.signOut();
-                  router.refresh();
+                  router.push("/sign-in");
                 }}
               >
                 Sign out
