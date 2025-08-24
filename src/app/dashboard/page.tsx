@@ -37,7 +37,9 @@ interface Grade {
   courseName: string;
   courseCode: string;
   grade: string;
+  specialization: string;
   ibApMark?: number;
+  otherSpecialization?: string;
 }
 
 export default function Dashboard({ searchParams }: { searchParams?: any }) {
@@ -54,10 +56,12 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
       courseName: "",
       courseCode: "",
       grade: "",
+      specialization: "na",
       ibApMark: undefined,
+      otherSpecialization: "",
     },
   ]);
-  const [specializedProgram, setSpecializedProgram] = useState("");
+
   const [universityAttendance, setUniversityAttendance] = useState("");
 
   useEffect(() => {
@@ -102,7 +106,9 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
         courseName: "",
         courseCode: "",
         grade: "",
+        specialization: "na",
         ibApMark: undefined,
+        otherSpecialization: "",
       },
     ]);
   };
@@ -119,6 +125,20 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
     const updated = [...grades];
     (updated[index] as any)[field] = value;
     setGrades(updated);
+  };
+
+  const validateGrades = () => {
+    return grades.every((grade) => {
+      if (!grade.ibApMark) return true; // Empty marks are valid
+
+      if (grade.specialization === "ib") {
+        return grade.ibApMark >= 1 && grade.ibApMark <= 7;
+      } else if (grade.specialization === "ap") {
+        return grade.ibApMark >= 1 && grade.ibApMark <= 5;
+      }
+
+      return true;
+    });
   };
 
   if (loading) {
@@ -163,7 +183,19 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
             </div>
           </header>
 
-          <form action={submitAdmissionDataAction} className="space-y-8">
+          <form
+            action={submitAdmissionDataAction}
+            className="space-y-8"
+            onSubmit={(e) => {
+              if (!validateGrades()) {
+                e.preventDefault();
+                alert(
+                  "Please ensure all IB marks are between 1-7 and AP marks are between 1-5 before submitting."
+                );
+                return false;
+              }
+            }}
+          >
             {/* Hidden fields to pass the JSON data */}
             <input
               type="hidden"
@@ -171,11 +203,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
               value={JSON.stringify(universities)}
             />
             <input type="hidden" name="grades" value={JSON.stringify(grades)} />
-            <input
-              type="hidden"
-              name="specialized_program"
-              value={specializedProgram}
-            />
+
             <input
               type="hidden"
               name="university_attendance"
@@ -203,38 +231,6 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                     <SelectItem value="spring_2026">Spring 2026</SelectItem>
                     <SelectItem value="fall_2026">Fall 2026</SelectItem>
                     <SelectItem value="2027_onwards">2027 onwards</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
-            {/* Specialized Program */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Specialized Program</CardTitle>
-                <CardDescription>
-                  Did you participate in any specialized programs?
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Select
-                  value={specializedProgram}
-                  onValueChange={setSpecializedProgram}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select program type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ib">
-                      International Baccalaureate (IB)
-                    </SelectItem>
-                    <SelectItem value="ap">Advanced Placement (AP)</SelectItem>
-                    <SelectItem value="other">
-                      Other specialized program
-                    </SelectItem>
-                    <SelectItem value="na">
-                      N/A - No specialized program
-                    </SelectItem>
                   </SelectContent>
                 </Select>
               </CardContent>
@@ -284,7 +280,10 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                           <SelectItem value="accepted">Accepted</SelectItem>
                           <SelectItem value="waitlisted">Waitlisted</SelectItem>
                           <SelectItem value="rejected">Rejected</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="applied">Applied</SelectItem>
+                          <SelectItem value="planning_on_applying">
+                            Planning on applying
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -327,9 +326,9 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                 {grades.map((grade, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg"
+                    className="grid grid-cols-1 lg:grid-cols-8 gap-4 p-4 border rounded-lg"
                   >
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor={`grade-level-${index}`}>
                         Grade Level
                       </Label>
@@ -348,7 +347,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor={`course-name-${index}`}>
                         Course Name
                       </Label>
@@ -361,7 +360,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                         }
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor={`course-code-${index}`}>
                         Course Code
                       </Label>
@@ -374,7 +373,7 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                         }
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor={`grade-${index}`}>Grade</Label>
                       <Input
                         id={`grade-${index}`}
@@ -385,22 +384,101 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
                         }
                       />
                     </div>
-                    <div>
-                      <Label htmlFor={`ib-ap-mark-${index}`}>IB/AP Mark</Label>
-                      <Input
-                        id={`ib-ap-mark-${index}`}
-                        type="number"
-                        placeholder="7 or 5"
-                        value={grade.ibApMark || ""}
-                        onChange={(e) =>
-                          updateGrade(
-                            index,
-                            "ibApMark",
-                            parseInt(e.target.value) || undefined
-                          )
+                    <div className="space-y-2">
+                      <Label htmlFor={`specialization-${index}`}>
+                        Specialization
+                      </Label>
+                      <Select
+                        value={grade.specialization}
+                        onValueChange={(value) =>
+                          updateGrade(index, "specialization", value)
                         }
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="na">N/A</SelectItem>
+                          <SelectItem value="ib">IB</SelectItem>
+                          <SelectItem value="ap">AP</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+
+                    {/* Conditional IB/AP Mark field */}
+                    {(grade.specialization === "ib" ||
+                      grade.specialization === "ap") && (
+                      <div className="space-y-2">
+                        <Label htmlFor={`ib-ap-${index}`}>
+                          {grade.specialization === "ib"
+                            ? "IB Mark"
+                            : "AP Mark"}
+                        </Label>
+                        <Input
+                          id={`ib-ap-${index}`}
+                          type="number"
+                          min={1}
+                          max={grade.specialization === "ib" ? 7 : 5}
+                          placeholder={
+                            grade.specialization === "ib" ? "1-7" : "1-5"
+                          }
+                          value={grade.ibApMark || ""}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+
+                            if (!e.target.value || e.target.value === "") {
+                              updateGrade(index, "ibApMark", undefined);
+                            } else if (!isNaN(value)) {
+                              updateGrade(index, "ibApMark", value);
+                            }
+                          }}
+                          className={
+                            grade.ibApMark &&
+                            (grade.ibApMark < 1 ||
+                              grade.ibApMark >
+                                (grade.specialization === "ib" ? 7 : 5))
+                              ? "border-red-500 focus:border-red-500"
+                              : ""
+                          }
+                        />
+                        {grade.ibApMark &&
+                          (grade.ibApMark < 1 ||
+                            grade.ibApMark >
+                              (grade.specialization === "ib" ? 7 : 5)) && (
+                            <p className="text-sm text-red-600 mt-1">
+                              {grade.specialization === "ib"
+                                ? "IB marks must be between 1-7"
+                                : "AP marks must be between 1-5"}
+                            </p>
+                          )}
+                      </div>
+                    )}
+
+                    {/* Conditional Other specialization field */}
+                    {grade.specialization === "other" && (
+                      <div className="space-y-2">
+                        <Label htmlFor={`other-spec-${index}`}>
+                          Specify Other
+                        </Label>
+                        <Input
+                          id={`other-spec-${index}`}
+                          placeholder="e.g., Honors, Cambridge, etc."
+                          value={grade.otherSpecialization || ""}
+                          onChange={(e) =>
+                            updateGrade(
+                              index,
+                              "otherSpecialization",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+
+                    {/* Spacer column for alignment when no conditional fields */}
+                    {grade.specialization === "na" && <div></div>}
+
                     <div className="flex items-end">
                       {grades.length > 1 && (
                         <Button
@@ -429,13 +507,19 @@ export default function Dashboard({ searchParams }: { searchParams?: any }) {
             </Card>
 
             {/* Submit Button */}
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center space-y-2">
               <SubmitButton
-                className="px-8 py-3 text-lg"
+                className={`px-8 py-3 text-lg ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!validateGrades()}
                 pendingText="Submitting..."
               >
                 Submit Admission Data
               </SubmitButton>
+              {!validateGrades() && (
+                <p className="text-sm text-red-600 text-center">
+                  Please fix the IB/AP mark validation errors before submitting.
+                </p>
+              )}
             </div>
 
             <FormMessage message={searchParams} />
