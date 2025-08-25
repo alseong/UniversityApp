@@ -35,7 +35,7 @@ export default function CookiesPage() {
               How We Use Cookies
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Admit.me uses cookies to enhance your browsing experience and
+              admitme uses cookies to enhance your browsing experience and
               provide our services effectively. We use cookies for the following
               purposes:
             </p>

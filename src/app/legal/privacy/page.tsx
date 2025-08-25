@@ -22,7 +22,7 @@ export default function PrivacyPage() {
               Introduction
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              At Admit.me, we are committed to protecting your privacy and
+              At admitme, we are committed to protecting your privacy and
               ensuring transparency in how we handle your data. This Privacy
               Policy explains what information we collect, how we use it, and
               your rights regarding your personal data.

@@ -69,7 +69,7 @@ export default function Navbar() {
     <nav className="w-full border-b border-gray-200 bg-white py-2">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link href="/" prefetch className="text-xl font-bold text-blue-600">
-          Admit.me
+          admitme
         </Link>
 
         {/* Desktop Navigation */}

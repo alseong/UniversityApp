@@ -20,7 +20,7 @@ export default function SecurityPage() {
               Our Commitment to Security
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              At Admit.me, we take the security of your data seriously. We
+              At admitme, we take the security of your data seriously. We
               implement multiple layers of security measures to protect your
               information and maintain the integrity of our platform.
             </p>

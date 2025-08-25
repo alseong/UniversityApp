@@ -32,7 +32,7 @@ export default function FeedbackPage() {
             <h1 className="text-4xl font-bold mb-4">Feedback & Contact Us</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
               We'd love to hear from you! Whether you have feedback, questions,
-              or need support, we're here to help make Admit.me better for
+              or need support, we're here to help make admitme better for
               everyone.
             </p>
           </div>
@@ -218,7 +218,7 @@ export default function FeedbackPage() {
               <CardContent className="pt-6">
                 <h3 className="font-semibold mb-4">We Value Your Input</h3>
                 <p className="text-gray-600 text-sm">
-                  Admit.me is built for students, by students. Your feedback
+                  admitme is built for students, by students. Your feedback
                   helps us improve the platform and create better tools for
                   future applicants. Whether it's a suggestion for new features,
                   a report about data accuracy, or just general thoughts about

@@ -22,7 +22,7 @@ export default function TermsPage() {
               Acceptance of Terms
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              By accessing and using Admit.me, you accept and agree to be bound
+              By accessing and using admitme, you accept and agree to be bound
               by the terms and provision of this agreement. If you do not agree
               to abide by the above, please do not use this service.
             </p>
@@ -33,7 +33,7 @@ export default function TermsPage() {
               Use License
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Permission is granted to temporarily access Admit.me for personal,
+              Permission is granted to temporarily access admitme for personal,
               non-commercial transitory viewing only. This is the grant of a
               license, not a transfer of title, and under this license you may
               not:
@@ -45,7 +45,7 @@ export default function TermsPage() {
                 display
               </li>
               <li>
-                attempt to reverse engineer any software contained on Admit.me
+                attempt to reverse engineer any software contained on admitme
               </li>
               <li>
                 remove any copyright or other proprietary notations from the
@@ -59,7 +59,7 @@ export default function TermsPage() {
               User Content
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              By submitting academic data to Admit.me, you grant us a
+              By submitting academic data to admitme, you grant us a
               non-exclusive, worldwide, royalty-free license to use, aggregate,
               and anonymize your data for statistical and research purposes. You
               represent that:
@@ -114,12 +114,12 @@ export default function TermsPage() {
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               The information on this website is provided on an 'as is' basis.
-              To the fullest extent permitted by law, Admit.me excludes all
+              To the fullest extent permitted by law, admitme excludes all
               representations, warranties, conditions and terms related to our
               website and the use of this website.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Admit.me provides aggregated data for informational purposes only.
+              admitme provides aggregated data for informational purposes only.
               We do not guarantee the accuracy of any predictions or insights
               derived from our data. University admissions decisions depend on
               many factors beyond academic performance.
@@ -131,11 +131,11 @@ export default function TermsPage() {
               Limitations
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              In no event shall Admit.me or its suppliers be liable for any
+              In no event shall admitme or its suppliers be liable for any
               damages (including, without limitation, damages for loss of data
               or profit, or due to business interruption) arising out of the use
-              or inability to use the materials on Admit.me's website, even if
-              Admit.me or an authorized representative has been notified orally
+              or inability to use the materials on admitme's website, even if
+              admitme or an authorized representative has been notified orally
               or in writing of the possibility of such damage.
             </p>
           </section>

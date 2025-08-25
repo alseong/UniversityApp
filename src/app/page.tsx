@@ -41,7 +41,7 @@ export default async function Home() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why Admit.me</h2>
+            <h2 className="text-3xl font-bold mb-4">Why admitme</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Get real insights into university admissions with data-driven
               transparency that helps students make informed decisions.
@@ -153,7 +153,7 @@ export default async function Home() {
                 {
                   question: "Is this service free?",
                   answer:
-                    "Yes, Admit.me is completely free for students. Our mission is to democratize access to admission information and help level the playing field for all students.",
+                    "Yes, admitme is completely free for students. Our mission is to democratize access to admission information and help level the playing field for all students.",
                 },
               ].map((faq, index) => (
                 <div key={index} className="border-b border-gray-200 pb-6">

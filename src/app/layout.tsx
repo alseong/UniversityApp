@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Admit.me - University Admissions Transparency Platform",
+  title: "admitme - University Admissions Transparency Platform",
   description:
     "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university admissions requirements.",
 };
