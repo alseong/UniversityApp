@@ -1,5 +1,9 @@
 "use client";
 
+// Force dynamic rendering to prevent caching issues
+export const dynamic = "force-dynamic";
+export const fetchCache = "default-no-store";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,6 +27,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
+import { cookies } from "next/headers";
 
 interface University {
   name: string;
