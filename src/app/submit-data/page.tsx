@@ -59,6 +59,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     },
   ]);
   const [universityAttendance, setUniversityAttendance] = useState("");
+  const [highSchool, setHighSchool] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -94,6 +95,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       if (admissionData) {
         // Load data from the simplified structure
         setUniversityAttendance(admissionData.university_attendance || "");
+        setHighSchool(admissionData.high_school || "");
         setUniversities(
           admissionData.universities || [{ name: "", status: "" }]
         );
@@ -194,7 +196,13 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(autoSaveTimer);
-  }, [universities, grades, universityAttendance, hasUnsavedChanges]);
+  }, [
+    universities,
+    grades,
+    universityAttendance,
+    highSchool,
+    hasUnsavedChanges,
+  ]);
 
   const handleSave = async (isAutoSave = false) => {
     if (!validateGrades()) {
@@ -213,6 +221,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       const saveData = {
         user_id: user.id,
         university_attendance: universityAttendance,
+        high_school: highSchool,
         universities: universities,
         grades: grades,
       };
@@ -356,6 +365,30 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     <SelectItem value="2027_onwards">2027 onwards</SelectItem>
                   </SelectContent>
                 </Select>
+              </CardContent>
+            </Card>
+
+            {/* High School */}
+            <Card>
+              <CardHeader>
+                <CardTitle>High School</CardTitle>
+                <CardDescription>
+                  Which high school did/do you attend?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="high-school">High School Name</Label>
+                  <Input
+                    id="high-school"
+                    placeholder="e.g., Bayview Secondary School"
+                    value={highSchool}
+                    onChange={(e) => {
+                      setHighSchool(e.target.value);
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
