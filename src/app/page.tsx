@@ -128,7 +128,7 @@ export default async function Home() {
                 {
                   question: "Is my data really anonymous?",
                   answer:
-                    "Yes, absolutely. We never store personally identifiable information. All data is aggregated and anonymized before being used for statistics. Your individual submission cannot be traced back to you.",
+                    "Yes, your data is anonymous to others. While you can log in to edit your own submission, we never store personally identifiable information like names or addresses. All data is aggregated and anonymized before being used for statistics, so other users cannot trace any individual submission back to you.",
                 },
                 {
                   question: "What data do you collect?",
