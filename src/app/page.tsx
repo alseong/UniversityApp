@@ -35,7 +35,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Navbar />
-      <Hero />
+      <Hero user={user} />
 
       {/* Features Section */}
       <section className="py-24 bg-white">
