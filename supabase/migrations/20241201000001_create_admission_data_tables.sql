@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS university_applications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   submission_id UUID REFERENCES admission_submissions(id) ON DELETE CASCADE,
   university_name TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('accepted', 'waitlisted', 'rejected', 'applied', 'interested')),
+  status TEXT NOT NULL CHECK (status IN ('accepted', 'waitlisted', 'rejected', 'pending')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

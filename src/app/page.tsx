@@ -7,6 +7,7 @@ import {
   Database,
   GraduationCap,
   TrendingUp,
+  Plus,
 } from "lucide-react";
 import { createClient } from "../../supabase/server";
 
@@ -68,33 +69,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section id="statistics" className="py-20 bg-blue-600 text-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Platform Statistics</h2>
-            <p className="text-blue-100 max-w-2xl mx-auto">
-              Join thousands of students who are making data-driven decisions
-              about their university applications.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">10,000+</div>
-              <div className="text-blue-100">Admission Records</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-blue-100">Universities Covered</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-blue-100">Data Accuracy</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Mission Section */}
       <section className="py-20 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
@@ -130,6 +104,163 @@ export default async function Home() {
             >
               Join Waitlist
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Everything you need to know about Admit.me and how it works.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-6">
+            {/* FAQ Item 1 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  What is Admit.me?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  Admit.me is a platform that helps students make informed
+                  decisions about university admissions by providing transparent
+                  access to real admission data from students like you. We're
+                  building the most comprehensive database of university
+                  admission outcomes to help future applicants understand their
+                  chances and prepare better applications.
+                </p>
+              </div>
+            </details>
+
+            {/* FAQ Item 2 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  How is my data used?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  Your data is aggregated anonymously to create insights and
+                  trends that help other students. We never share personal
+                  information or link specific outcomes to individual students.
+                  All data is used to build statistical models that show
+                  admission patterns and help students understand what
+                  successful applications look like.
+                </p>
+              </div>
+            </details>
+
+            {/* FAQ Item 3 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  When will the dashboard be ready?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  We're currently collecting data from students to build
+                  meaningful insights. Once we have enough data to provide
+                  accurate and helpful analytics, we'll launch the dashboard
+                  with admission trends, grade comparisons, and personalized
+                  recommendations. We'll notify all contributors as soon as it's
+                  ready!
+                </p>
+              </div>
+            </details>
+
+            {/* FAQ Item 4 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Who can submit data?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  Any current or former high school student who has applied to
+                  or is interested in applying to universities can contribute
+                  their data. Whether you're currently in Grade 11/12, recently
+                  graduated, or already in university, your admission experience
+                  helps build a comprehensive picture for future students.
+                </p>
+              </div>
+            </details>
+
+            {/* FAQ Item 5 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Is my personal information secure?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  Yes, we take privacy seriously. All data is stored securely
+                  and only you can access your personal submission. When we use
+                  data for insights, it's completely anonymized and aggregated
+                  so individual students cannot be identified. We never sell or
+                  share personal information with third parties.
+                </p>
+              </div>
+            </details>
+
+            {/* FAQ Item 6 */}
+            <details className="group border border-gray-200 rounded-lg overflow-hidden">
+              <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Can I update my information later?
+                </h3>
+                <div className="ml-6 flex-shrink-0">
+                  <div className="group-open:rotate-45 transition-transform duration-200">
+                    <Plus className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-600">
+                  Absolutely! You can update your admission data anytime. As
+                  your application status changes (from "interested" to
+                  "applied" to "accepted"), you can log back in and update your
+                  information. This keeps our data current and helpful for other
+                  students.
+                </p>
+              </div>
+            </details>
           </div>
         </div>
       </section>
