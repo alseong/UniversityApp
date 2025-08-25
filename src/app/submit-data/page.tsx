@@ -318,23 +318,6 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 </div>
               </div>
             </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <InfoIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">
-                    Join Our Waitlist
-                  </h3>
-                  <p className="text-blue-800 text-sm">
-                    Enter and save your admission data. You can update this
-                    information anytime and we'll keep your latest data stored.
-                    Your data will be aggregated anonymously to help future
-                    students make informed decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
           </header>
 
           <div className="space-y-8">
