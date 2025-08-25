@@ -1,15 +1,69 @@
+"use client";
+
 import Link from "next/link";
-import { createClient } from "../../supabase/server";
 import { Button } from "./ui/button";
-import { User, UserCircle } from "lucide-react";
-import UserProfile from "./user-profile";
+import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createClient } from "../../supabase/client";
+import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
-export default async function Navbar() {
+export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
-  const {
-    data: { user },
-  } = await (await supabase).auth.getUser();
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/sign-in");
+    closeMenu();
+  };
+
+  if (loading) {
+    return (
+      <nav className="w-full border-b border-gray-200 bg-white py-2">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <Link href="/" prefetch className="text-xl font-bold text-blue-600">
+            Admit.me
+          </Link>
+          <div className="flex gap-4 items-center">
+            <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-2">
@@ -17,16 +71,29 @@ export default async function Navbar() {
         <Link href="/" prefetch className="text-xl font-bold text-blue-600">
           Admit.me
         </Link>
-        <div className="flex gap-4 items-center">
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex gap-4 items-center">
           {user ? (
             <>
               <Link
                 href="/dashboard"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
-                <Button>Dashboard</Button>
+                Dashboard
               </Link>
-              <UserProfile />
+              <Link
+                href="/submit-data"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Your Admissions Data
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Sign out
+              </button>
             </>
           ) : (
             <>
@@ -45,7 +112,69 @@ export default async function Navbar() {
             </>
           )}
         </div>
+
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={toggleMenu}
+          className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Toggle navigation menu"
+        >
+          {isMenuOpen ? (
+            <X className="h-6 w-6 text-gray-600" />
+          ) : (
+            <Menu className="h-6 w-6 text-gray-600" />
+          )}
+        </button>
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="container mx-auto px-4 py-4 space-y-3">
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/submit-data"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                >
+                  Your Admissions Data
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md text-left"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 text-center"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
