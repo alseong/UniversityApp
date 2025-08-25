@@ -1,13 +1,26 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Check } from "lucide-react";
+import { createClient } from "../../supabase/client";
 
-interface HeroProps {
-  user: any;
-}
+export default function Hero() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function Hero({ user }: HeroProps) {
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+  }, []);
   return (
     <div className="relative overflow-hidden bg-white">
       {/* Background gradient */}
