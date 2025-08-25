@@ -3,9 +3,6 @@ const nextConfig = {
   images: {
     domains: ["images.unsplash.com"],
   },
-  // NUCLEAR CACHE BUSTING - prevent any cache restoration
-  generateBuildId: () =>
-    `nocache-${Date.now()}-${Math.random().toString(36).substring(7)}`,
 };
 
 if (process.env.NEXT_PUBLIC_TEMPO) {

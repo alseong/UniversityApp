@@ -1,4 +1,3 @@
-/* This file contains the admission data form - REBUILD WITHOUT CACHE 1735090982543 */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormMessage } from "@/components/form-message";
-import { Plus, Trash2, InfoIcon } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
@@ -292,10 +291,6 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
           <header className="mb-8">
             <div className="flex justify-between items-start mb-4">
               <h1 className="text-3xl font-bold">Your Admission Data</h1>
-              {/* Debug marker - remove when cache issue is resolved */}
-              <div className="text-xs text-green-600 font-mono">
-                ✅ Cache-free build deployed: 1735090982543
-              </div>
 
               {/* Top Save Button */}
               <div className="flex flex-col items-end space-y-1">
