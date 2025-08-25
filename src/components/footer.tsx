@@ -8,9 +8,9 @@ export default function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-100">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Platform Column */}
-          <div>
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-8 mb-12">
+          {/* Platform Column - Commented Out */}
+          {/* <div>
             <h3 className="font-semibold text-gray-900 mb-4">Platform</h3>
             <ul className="space-y-2">
               <li>
@@ -43,10 +43,10 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
-          {/* Data Column */}
-          <div>
+          {/* Data Column - Commented Out */}
+          {/* <div>
             <h3 className="font-semibold text-gray-900 mb-4">Data</h3>
             <ul className="space-y-2">
               <li>
@@ -70,31 +70,36 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Support Column */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <a
+                  href="https://app.youform.com/forms/i14kuart"
+                  className="text-gray-600 hover:text-blue-600"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Contact Us
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <a href="/#faq" className="text-gray-600 hover:text-blue-600">
                   FAQ
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <a
+                  href="https://app.youform.com/forms/i14kuart"
+                  className="text-gray-600 hover:text-blue-600"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Feedback
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -104,22 +109,34 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <Link
+                  href="/legal/privacy"
+                  className="text-gray-600 hover:text-blue-600"
+                >
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <Link
+                  href="/legal/terms"
+                  className="text-gray-600 hover:text-blue-600"
+                >
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <Link
+                  href="/legal/security"
+                  className="text-gray-600 hover:text-blue-600"
+                >
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-600">
+                <Link
+                  href="/legal/cookies"
+                  className="text-gray-600 hover:text-blue-600"
+                >
                   Cookies
                 </Link>
               </li>

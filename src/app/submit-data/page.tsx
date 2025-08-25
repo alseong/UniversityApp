@@ -27,7 +27,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
-import { cookies } from "next/headers";
 
 interface University {
   name: string;

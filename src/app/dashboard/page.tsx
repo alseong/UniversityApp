@@ -125,7 +125,7 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="text-2xl">Dashboard Coming Soon!</CardTitle>
               <CardDescription className="text-lg">
-                We're still gathering admission data from students like you.
+                We will notify as soon as dashboard is ready.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -150,13 +150,6 @@ export default function Dashboard() {
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
-              </div>
-
-              <div className="text-sm text-gray-500">
-                <p>
-                  We'll notify you as soon as the dashboard is ready with
-                  insights!
-                </p>
               </div>
             </CardContent>
           </Card>
