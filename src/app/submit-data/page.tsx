@@ -1,3 +1,4 @@
+/* This file contains the admission data form - updated to remove waitlist banner */
 "use client";
 
 import { Button } from "@/components/ui/button";
