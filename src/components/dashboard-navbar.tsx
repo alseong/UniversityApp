@@ -48,6 +48,12 @@ export default function DashboardNavbar() {
             >
               Your Admissions Data
             </Link>
+            <Link
+              href="/feedback"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Feedback
+            </Link>
             <button
               onClick={handleSignOut}
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
@@ -88,6 +94,13 @@ export default function DashboardNavbar() {
               className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
             >
               Your Admissions Data
+            </Link>
+            <Link
+              href="/feedback"
+              onClick={closeMenu}
+              className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              Feedback
             </Link>
             <button
               onClick={handleSignOut}

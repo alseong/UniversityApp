@@ -88,6 +88,12 @@ export default function Navbar() {
               >
                 Your Admissions Data
               </Link>
+              <Link
+                href="/feedback"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Feedback
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -97,6 +103,12 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <Link
+                href="/feedback"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Feedback
+              </Link>
               <Link
                 href="/sign-in"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -147,6 +159,13 @@ export default function Navbar() {
                 >
                   Your Admissions Data
                 </Link>
+                <Link
+                  href="/feedback"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                >
+                  Feedback
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md text-left"
@@ -156,6 +175,13 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                <Link
+                  href="/feedback"
+                  onClick={closeMenu}
+                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                >
+                  Feedback
+                </Link>
                 <Link
                   href="/sign-in"
                   onClick={closeMenu}

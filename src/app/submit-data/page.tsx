@@ -38,7 +38,7 @@ interface Grade {
   courseName: string;
   courseCode: string;
   grade: string;
-  specialization: string;
+  type: string;
   ibApMark?: number;
   otherSpecialization?: string;
 }
@@ -57,7 +57,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       courseName: "",
       courseCode: "",
       grade: "",
-      specialization: "na",
+      type: "u",
       ibApMark: undefined,
       otherSpecialization: "",
     },
@@ -103,18 +103,29 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         setUniversities(
           admissionData.universities || [{ name: "", status: "" }]
         );
+
+        // Handle backward compatibility for grades: convert 'specialization' to 'type'
+        const grades = admissionData.grades || [];
+        const normalizedGrades = grades.map((grade: any) => ({
+          ...grade,
+          type: grade.type || grade.specialization || "u", // Use 'type' if exists, fallback to 'specialization', default to 'u'
+          specialization: undefined, // Remove old field
+        }));
+
         setGrades(
-          admissionData.grades || [
-            {
-              level: "grade_11",
-              courseName: "",
-              courseCode: "",
-              grade: "",
-              specialization: "na",
-              ibApMark: undefined,
-              otherSpecialization: "",
-            },
-          ]
+          normalizedGrades.length > 0
+            ? normalizedGrades
+            : [
+                {
+                  level: "grade_11",
+                  courseName: "",
+                  courseCode: "",
+                  grade: "",
+                  type: "u",
+                  ibApMark: undefined,
+                  otherSpecialization: "",
+                },
+              ]
         );
         setLastSaved(new Date(admissionData.updated_at));
       }
@@ -153,7 +164,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         courseName: "",
         courseCode: "",
         grade: "",
-        specialization: "na",
+        type: "u",
         ibApMark: undefined,
         otherSpecialization: "",
       },
@@ -181,9 +192,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     return grades.every((grade) => {
       if (!grade.ibApMark) return true; // Empty marks are valid
 
-      if (grade.specialization === "ib") {
+      if (grade.type === "ib") {
         return grade.ibApMark >= 1 && grade.ibApMark <= 7;
-      } else if (grade.specialization === "ap") {
+      } else if (grade.type === "ap") {
         return grade.ibApMark >= 1 && grade.ibApMark <= 5;
       }
 
@@ -462,7 +473,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               <CardHeader>
                 <CardTitle>Academic Grades</CardTitle>
                 <CardDescription>
-                  Enter your Grade 11 and Grade 12 final grades
+                  Enter your Grade 11 and Grade 12 grades
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -528,20 +539,22 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`specialization-${index}`}>
-                        Specialization
-                      </Label>
+                      <Label htmlFor={`type-${index}`}>Type</Label>
                       <Select
-                        value={grade.specialization}
+                        value={grade.type}
                         onValueChange={(value) =>
-                          updateGrade(index, "specialization", value)
+                          updateGrade(index, "type", value)
                         }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="na">N/A</SelectItem>
+                          <SelectItem value="u">U (University)</SelectItem>
+                          <SelectItem value="m">M (Mixed)</SelectItem>
+                          <SelectItem value="c">C (College)</SelectItem>
+                          <SelectItem value="e">E (Workplace)</SelectItem>
+                          <SelectItem value="o">O (Open)</SelectItem>
                           <SelectItem value="ib">IB</SelectItem>
                           <SelectItem value="ap">AP</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
@@ -550,22 +563,17 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     </div>
 
                     {/* Conditional IB/AP Mark field */}
-                    {(grade.specialization === "ib" ||
-                      grade.specialization === "ap") && (
+                    {(grade.type === "ib" || grade.type === "ap") && (
                       <div className="space-y-2">
                         <Label htmlFor={`ib-ap-${index}`}>
-                          {grade.specialization === "ib"
-                            ? "IB Mark"
-                            : "AP Mark"}
+                          {grade.type === "ib" ? "IB Mark" : "AP Mark"}
                         </Label>
                         <Input
                           id={`ib-ap-${index}`}
                           type="number"
                           min={1}
-                          max={grade.specialization === "ib" ? 7 : 5}
-                          placeholder={
-                            grade.specialization === "ib" ? "1-7" : "1-5"
-                          }
+                          max={grade.type === "ib" ? 7 : 5}
+                          placeholder={grade.type === "ib" ? "1-7" : "1-5"}
                           value={grade.ibApMark || ""}
                           onChange={(e) => {
                             const value = parseInt(e.target.value);
@@ -579,18 +587,16 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                           className={
                             grade.ibApMark &&
                             (grade.ibApMark < 1 ||
-                              grade.ibApMark >
-                                (grade.specialization === "ib" ? 7 : 5))
+                              grade.ibApMark > (grade.type === "ib" ? 7 : 5))
                               ? "border-red-500 focus:border-red-500"
                               : ""
                           }
                         />
                         {grade.ibApMark &&
                           (grade.ibApMark < 1 ||
-                            grade.ibApMark >
-                              (grade.specialization === "ib" ? 7 : 5)) && (
+                            grade.ibApMark > (grade.type === "ib" ? 7 : 5)) && (
                             <p className="text-sm text-red-600 mt-1">
-                              {grade.specialization === "ib"
+                              {grade.type === "ib"
                                 ? "IB marks must be between 1-7"
                                 : "AP marks must be between 1-5"}
                             </p>
@@ -598,8 +604,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                       </div>
                     )}
 
-                    {/* Conditional Other specialization field */}
-                    {grade.specialization === "other" && (
+                    {/* Conditional Other type field */}
+                    {grade.type === "other" && (
                       <div className="space-y-2">
                         <Label htmlFor={`other-spec-${index}`}>
                           Specify Other
@@ -620,7 +626,11 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     )}
 
                     {/* Spacer column for alignment when no conditional fields */}
-                    {grade.specialization === "na" && <div></div>}
+                    {(grade.type === "u" ||
+                      grade.type === "m" ||
+                      grade.type === "c" ||
+                      grade.type === "e" ||
+                      grade.type === "o") && <div></div>}
 
                     <div className="flex items-end">
                       {grades.length > 1 && (
