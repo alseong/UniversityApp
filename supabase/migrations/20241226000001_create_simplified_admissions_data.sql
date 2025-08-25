@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS public.admissions_data (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   university_attendance TEXT,
+  high_school TEXT,
   universities JSONB NOT NULL DEFAULT '[]'::jsonb,
   grades JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

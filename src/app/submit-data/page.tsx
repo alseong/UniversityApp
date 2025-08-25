@@ -59,6 +59,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     },
   ]);
   const [universityAttendance, setUniversityAttendance] = useState("");
+  const [highSchool, setHighSchool] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -94,6 +95,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       if (admissionData) {
         // Load data from the simplified structure
         setUniversityAttendance(admissionData.university_attendance || "");
+        setHighSchool(admissionData.high_school || "");
         setUniversities(
           admissionData.universities || [{ name: "", status: "" }]
         );
@@ -194,7 +196,13 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(autoSaveTimer);
-  }, [universities, grades, universityAttendance, hasUnsavedChanges]);
+  }, [
+    universities,
+    grades,
+    universityAttendance,
+    highSchool,
+    hasUnsavedChanges,
+  ]);
 
   const handleSave = async (isAutoSave = false) => {
     if (!validateGrades()) {
@@ -213,6 +221,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       const saveData = {
         user_id: user.id,
         university_attendance: universityAttendance,
+        high_school: highSchool,
         universities: universities,
         grades: grades,
       };
@@ -309,23 +318,6 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 </div>
               </div>
             </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <InfoIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">
-                    Join Our Waitlist
-                  </h3>
-                  <p className="text-blue-800 text-sm">
-                    Enter and save your admission data. You can update this
-                    information anytime and we'll keep your latest data stored.
-                    Your data will be aggregated anonymously to help future
-                    students make informed decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
           </header>
 
           <div className="space-y-8">
@@ -359,12 +351,36 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               </CardContent>
             </Card>
 
-            {/* University Applications */}
+            {/* High School */}
             <Card>
               <CardHeader>
-                <CardTitle>University Applications</CardTitle>
+                <CardTitle>High School</CardTitle>
                 <CardDescription>
-                  Which universities did you apply to and what was the outcome?
+                  Which high school did/do you attend?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="high-school">High School Name</Label>
+                  <Input
+                    id="high-school"
+                    placeholder="e.g., Bayview Secondary School"
+                    value={highSchool}
+                    onChange={(e) => {
+                      setHighSchool(e.target.value);
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Interested Universities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Interested Universities</CardTitle>
+                <CardDescription>
+                  Which universities are you interested in?
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -404,9 +420,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                           <SelectItem value="waitlisted">Waitlisted</SelectItem>
                           <SelectItem value="rejected">Rejected</SelectItem>
                           <SelectItem value="applied">Applied</SelectItem>
-                          <SelectItem value="planning_on_applying">
-                            Planning on applying
-                          </SelectItem>
+                          <SelectItem value="interested">Interested</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
