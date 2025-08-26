@@ -1,6 +1,7 @@
 import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
+import FAQStructuredData from "@/components/faq-structured-data";
 import {
   ArrowUpRight,
   BarChart3,
@@ -111,6 +112,7 @@ export default async function Home() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-20 bg-white">
+        <FAQStructuredData />
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">
