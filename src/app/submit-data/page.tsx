@@ -236,8 +236,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const handleSave = async (isAutoSave = false) => {
     if (!validateGrades()) {
       if (!isAutoSave) {
-        alert(
-          "Please ensure all IB marks are between 1-7 and AP marks are between 1-5 before saving."
+        // Show validation error in UI instead of alert
+        console.error(
+          "Validation failed: IB marks must be 1-7, AP marks must be 1-5"
         );
       }
       return;
@@ -286,14 +287,10 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
 
-      if (!isAutoSave) {
-        alert("Data saved successfully!");
-      }
+      // Success feedback shown via UI status instead of alert
     } catch (error) {
       console.error("Save error:", error);
-      if (!isAutoSave) {
-        alert("Failed to save data. Please try again.");
-      }
+      // Error feedback shown via UI status instead of alert
     } finally {
       setIsSaving(false);
     }
