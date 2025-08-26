@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { FormMessage } from "@/components/form-message";
 import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -62,6 +63,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       otherSpecialization: "",
     },
   ]);
+  const [useSimpleGradeEntry, setUseSimpleGradeEntry] = useState(false);
+  const [averageGrade, setAverageGrade] = useState("");
   const [universityAttendance, setUniversityAttendance] = useState("");
   const [highSchool, setHighSchool] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -112,21 +115,27 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
           specialization: undefined, // Remove old field
         }));
 
-        setGrades(
-          normalizedGrades.length > 0
-            ? normalizedGrades
-            : [
-                {
-                  level: "grade_11",
-                  courseName: "",
-                  courseCode: "",
-                  grade: "",
-                  type: "u",
-                  ibApMark: undefined,
-                  otherSpecialization: "",
-                },
-              ]
-        );
+        // Check if there's an average grade saved (simple entry mode)
+        if (admissionData.average_grade) {
+          setUseSimpleGradeEntry(true);
+          setAverageGrade(admissionData.average_grade);
+        } else {
+          setGrades(
+            normalizedGrades.length > 0
+              ? normalizedGrades
+              : [
+                  {
+                    level: "grade_11",
+                    courseName: "",
+                    courseCode: "",
+                    grade: "",
+                    type: "u",
+                    ibApMark: undefined,
+                    otherSpecialization: "",
+                  },
+                ]
+          );
+        }
         setLastSaved(new Date(admissionData.updated_at));
       }
     } catch (error) {
@@ -216,6 +225,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     grades,
     universityAttendance,
     highSchool,
+    useSimpleGradeEntry,
+    averageGrade,
     hasUnsavedChanges,
   ]);
 
@@ -238,7 +249,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         university_attendance: universityAttendance,
         high_school: highSchool,
         universities: universities,
-        grades: grades,
+        grades: useSimpleGradeEntry ? [] : grades,
+        average_grade: useSimpleGradeEntry ? averageGrade : null,
       };
 
       // Try to update existing data first, if it doesn't exist, insert new
@@ -356,6 +368,11 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="2027_onwards">2027 onwards</SelectItem>
+                    <SelectItem value="fall_2026">Fall 2026</SelectItem>
+                    <SelectItem value="spring_2026">Spring 2026</SelectItem>
+                    <SelectItem value="winter_2026">Winter 2026</SelectItem>
+                    <SelectItem value="fall_2025">Fall 2025</SelectItem>
                     <SelectItem value="2024">2024</SelectItem>
                     <SelectItem value="2023">2023</SelectItem>
                     <SelectItem value="2022">2022</SelectItem>
@@ -477,186 +494,222 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                   Enter your Grade 11 and Grade 12 grades
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {grades.map((grade, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 lg:grid-cols-8 gap-4 p-4 border rounded-lg"
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor={`grade-level-${index}`}>
-                        Grade Level
-                      </Label>
-                      <Select
-                        value={grade.level}
-                        onValueChange={(value) =>
-                          updateGrade(index, "level", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="grade_11">Grade 11</SelectItem>
-                          <SelectItem value="grade_12">Grade 12</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`course-name-${index}`}>
-                        Course Name
-                      </Label>
-                      <Input
-                        id={`course-name-${index}`}
-                        placeholder="e.g., Advanced Functions"
-                        value={grade.courseName}
-                        onChange={(e) =>
-                          updateGrade(index, "courseName", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`course-code-${index}`}>
-                        Course Code
-                      </Label>
-                      <Input
-                        id={`course-code-${index}`}
-                        placeholder="e.g., MHF4U"
-                        value={grade.courseCode}
-                        onChange={(e) =>
-                          updateGrade(index, "courseCode", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`grade-${index}`}>Grade</Label>
-                      <Input
-                        id={`grade-${index}`}
-                        placeholder="e.g., 95%"
-                        value={grade.grade}
-                        onChange={(e) =>
-                          updateGrade(index, "grade", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`type-${index}`}>Type</Label>
-                      <Select
-                        value={grade.type}
-                        onValueChange={(value) =>
-                          updateGrade(index, "type", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="u">U (University)</SelectItem>
-                          <SelectItem value="m">M (Mixed)</SelectItem>
-                          <SelectItem value="c">C (College)</SelectItem>
-                          <SelectItem value="e">E (Workplace)</SelectItem>
-                          <SelectItem value="o">O (Open)</SelectItem>
-                          <SelectItem value="ib">IB</SelectItem>
-                          <SelectItem value="ap">AP</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+              <CardContent className="space-y-6">
+                {/* Toggle for simple/detailed entry */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="simple-grade-entry"
+                    checked={useSimpleGradeEntry}
+                    onCheckedChange={(checked) => {
+                      setUseSimpleGradeEntry(checked);
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                  <Label htmlFor="simple-grade-entry">
+                    Just include the average grade
+                  </Label>
+                </div>
 
-                    {/* Conditional IB/AP Mark field */}
-                    {(grade.type === "ib" || grade.type === "ap") && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`ib-ap-${index}`}>
-                          {grade.type === "ib" ? "IB Mark" : "AP Mark"}
-                        </Label>
-                        <Input
-                          id={`ib-ap-${index}`}
-                          type="number"
-                          min={1}
-                          max={grade.type === "ib" ? 7 : 5}
-                          placeholder={grade.type === "ib" ? "1-7" : "1-5"}
-                          value={grade.ibApMark || ""}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-
-                            if (!e.target.value || e.target.value === "") {
-                              updateGrade(index, "ibApMark", undefined);
-                            } else if (!isNaN(value)) {
-                              updateGrade(index, "ibApMark", value);
-                            }
-                          }}
-                          className={
-                            grade.ibApMark &&
-                            (grade.ibApMark < 1 ||
-                              grade.ibApMark > (grade.type === "ib" ? 7 : 5))
-                              ? "border-red-500 focus:border-red-500"
-                              : ""
-                          }
-                        />
-                        {grade.ibApMark &&
-                          (grade.ibApMark < 1 ||
-                            grade.ibApMark > (grade.type === "ib" ? 7 : 5)) && (
-                            <p className="text-sm text-red-600 mt-1">
-                              {grade.type === "ib"
-                                ? "IB marks must be between 1-7"
-                                : "AP marks must be between 1-5"}
-                            </p>
-                          )}
-                      </div>
-                    )}
-
-                    {/* Conditional Other type field */}
-                    {grade.type === "other" && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`other-spec-${index}`}>
-                          Specify Other
-                        </Label>
-                        <Input
-                          id={`other-spec-${index}`}
-                          placeholder="e.g., Honors, Cambridge, etc."
-                          value={grade.otherSpecialization || ""}
-                          onChange={(e) =>
-                            updateGrade(
-                              index,
-                              "otherSpecialization",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    )}
-
-                    {/* Spacer column for alignment when no conditional fields */}
-                    {(grade.type === "u" ||
-                      grade.type === "m" ||
-                      grade.type === "c" ||
-                      grade.type === "e" ||
-                      grade.type === "o") && <div></div>}
-
-                    <div className="flex items-end">
-                      {grades.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeGrade(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
+                {useSimpleGradeEntry ? (
+                  // Simple average grade entry
+                  <div className="space-y-2">
+                    <Label htmlFor="average-grade">Average Grade</Label>
+                    <Input
+                      id="average-grade"
+                      placeholder="e.g., 85%, 3.7 GPA, etc."
+                      value={averageGrade}
+                      onChange={(e) => {
+                        setAverageGrade(e.target.value);
+                        setHasUnsavedChanges(true);
+                      }}
+                    />
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addGrade}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Grade
-                </Button>
+                ) : (
+                  // Detailed grade entry
+                  <div className="space-y-4">
+                    {grades.map((grade, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-1 lg:grid-cols-8 gap-4 p-4 border rounded-lg"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor={`grade-level-${index}`}>
+                            Grade Level
+                          </Label>
+                          <Select
+                            value={grade.level}
+                            onValueChange={(value) =>
+                              updateGrade(index, "level", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="grade_11">Grade 11</SelectItem>
+                              <SelectItem value="grade_12">Grade 12</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`course-name-${index}`}>
+                            Course Name
+                          </Label>
+                          <Input
+                            id={`course-name-${index}`}
+                            placeholder="e.g., Advanced Functions"
+                            value={grade.courseName}
+                            onChange={(e) =>
+                              updateGrade(index, "courseName", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`course-code-${index}`}>
+                            Course Code
+                          </Label>
+                          <Input
+                            id={`course-code-${index}`}
+                            placeholder="e.g., MHF4U"
+                            value={grade.courseCode}
+                            onChange={(e) =>
+                              updateGrade(index, "courseCode", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`grade-${index}`}>Grade</Label>
+                          <Input
+                            id={`grade-${index}`}
+                            placeholder="e.g., 95%"
+                            value={grade.grade}
+                            onChange={(e) =>
+                              updateGrade(index, "grade", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`type-${index}`}>Type</Label>
+                          <Select
+                            value={grade.type}
+                            onValueChange={(value) =>
+                              updateGrade(index, "type", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="u">U (University)</SelectItem>
+                              <SelectItem value="m">M (Mixed)</SelectItem>
+                              <SelectItem value="c">C (College)</SelectItem>
+                              <SelectItem value="e">E (Workplace)</SelectItem>
+                              <SelectItem value="o">O (Open)</SelectItem>
+                              <SelectItem value="ib">IB</SelectItem>
+                              <SelectItem value="ap">AP</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Conditional IB/AP Mark field */}
+                        {(grade.type === "ib" || grade.type === "ap") && (
+                          <div className="space-y-2">
+                            <Label htmlFor={`ib-ap-${index}`}>
+                              {grade.type === "ib" ? "IB Mark" : "AP Mark"}
+                            </Label>
+                            <Input
+                              id={`ib-ap-${index}`}
+                              type="number"
+                              min={1}
+                              max={grade.type === "ib" ? 7 : 5}
+                              placeholder={grade.type === "ib" ? "1-7" : "1-5"}
+                              value={grade.ibApMark || ""}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value);
+
+                                if (!e.target.value || e.target.value === "") {
+                                  updateGrade(index, "ibApMark", undefined);
+                                } else if (!isNaN(value)) {
+                                  updateGrade(index, "ibApMark", value);
+                                }
+                              }}
+                              className={
+                                grade.ibApMark &&
+                                (grade.ibApMark < 1 ||
+                                  grade.ibApMark >
+                                    (grade.type === "ib" ? 7 : 5))
+                                  ? "border-red-500 focus:border-red-500"
+                                  : ""
+                              }
+                            />
+                            {grade.ibApMark &&
+                              (grade.ibApMark < 1 ||
+                                grade.ibApMark >
+                                  (grade.type === "ib" ? 7 : 5)) && (
+                                <p className="text-sm text-red-600 mt-1">
+                                  {grade.type === "ib"
+                                    ? "IB marks must be between 1-7"
+                                    : "AP marks must be between 1-5"}
+                                </p>
+                              )}
+                          </div>
+                        )}
+
+                        {/* Conditional Other type field */}
+                        {grade.type === "other" && (
+                          <div className="space-y-2">
+                            <Label htmlFor={`other-spec-${index}`}>
+                              Specify Other
+                            </Label>
+                            <Input
+                              id={`other-spec-${index}`}
+                              placeholder="e.g., Honors, Cambridge, etc."
+                              value={grade.otherSpecialization || ""}
+                              onChange={(e) =>
+                                updateGrade(
+                                  index,
+                                  "otherSpecialization",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        )}
+
+                        {/* Spacer column for alignment when no conditional fields */}
+                        {(grade.type === "u" ||
+                          grade.type === "m" ||
+                          grade.type === "c" ||
+                          grade.type === "e" ||
+                          grade.type === "o") && <div></div>}
+
+                        <div className="flex items-end">
+                          {grades.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeGrade(index)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addGrade}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Grade
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
