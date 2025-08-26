@@ -341,7 +341,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               <CardHeader>
                 <CardTitle>University Attendance</CardTitle>
                 <CardDescription>
-                  When will you attend university?
+                  When did you start university, or when do you plan to start?
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -353,14 +353,15 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select attendance period" />
+                    <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fall_2025">Fall 2025</SelectItem>
-                    <SelectItem value="winter_2026">Winter 2026</SelectItem>
-                    <SelectItem value="spring_2026">Spring 2026</SelectItem>
-                    <SelectItem value="fall_2026">Fall 2026</SelectItem>
-                    <SelectItem value="2027_onwards">2027 onwards</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2022">2022</SelectItem>
+                    <SelectItem value="2021">2021</SelectItem>
+                    <SelectItem value="2020">2020</SelectItem>
+                    <SelectItem value="before_2020">Before 2020</SelectItem>
                   </SelectContent>
                 </Select>
               </CardContent>
