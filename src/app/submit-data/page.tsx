@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [avgGrade12, setAvgGrade12] = useState("");
   const [universityAttendance, setUniversityAttendance] = useState("");
   const [highSchool, setHighSchool] = useState("");
+  const [otherAchievements, setOtherAchievements] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -105,6 +107,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         // Load data from the simplified structure
         setUniversityAttendance(admissionData.university_attendance || "");
         setHighSchool(admissionData.high_school || "");
+        setOtherAchievements(admissionData.other_achievements || "");
         setUniversities(
           admissionData.universities || [{ name: "", program: "", status: "" }]
         );
@@ -228,6 +231,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     grades,
     universityAttendance,
     highSchool,
+    otherAchievements,
     useSimpleGradeEntry,
     avgGrade11,
     avgGrade12,
@@ -253,6 +257,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         user_id: user.id,
         university_attendance: universityAttendance,
         high_school: highSchool,
+        other_achievements: otherAchievements,
         universities: universities,
         grades: useSimpleGradeEntry ? [] : grades,
         avg_grade_11: useSimpleGradeEntry ? avgGrade11 : null,
@@ -462,6 +467,12 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="received_offer_and_accepted">
+                            Received Offer and Accepted
+                          </SelectItem>
+                          <SelectItem value="received_offer_and_rejected">
+                            Received Offer and Rejected
+                          </SelectItem>
                           <SelectItem value="accepted">Accepted</SelectItem>
                           <SelectItem value="waitlisted">Waitlisted</SelectItem>
                           <SelectItem value="rejected">Rejected</SelectItem>
@@ -761,6 +772,40 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     </Button>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Other Achievements */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Other Achievements</CardTitle>
+                <CardDescription>
+                  Share any additional achievements, awards, extracurricular
+                  activities, work experience, or other accomplishments that may
+                  be relevant to your application
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="other-achievements">
+                    Achievements & Activities
+                  </Label>
+                  <Textarea
+                    id="other-achievements"
+                    placeholder="e.g., Academic awards, leadership roles, volunteer work, part-time jobs, sports achievements, competitions, certifications, published work, etc."
+                    value={otherAchievements}
+                    onChange={(e) => {
+                      setOtherAchievements(e.target.value);
+                      setHasUnsavedChanges(true);
+                    }}
+                    rows={6}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Optional: Include any achievements that help showcase your
+                    profile beyond grades and university applications
+                  </p>
+                </div>
               </CardContent>
             </Card>
 

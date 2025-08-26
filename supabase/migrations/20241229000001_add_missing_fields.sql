@@ -2,4 +2,5 @@
 ALTER TABLE public.admissions_data 
 ADD COLUMN IF NOT EXISTS high_school TEXT,
 ADD COLUMN IF NOT EXISTS avg_grade_11 TEXT,
-ADD COLUMN IF NOT EXISTS avg_grade_12 TEXT; 
+ADD COLUMN IF NOT EXISTS avg_grade_12 TEXT,
+ADD COLUMN IF NOT EXISTS other_achievements TEXT; 
