@@ -31,6 +31,7 @@ import DashboardNavbar from "@/components/dashboard-navbar";
 
 interface University {
   name: string;
+  program: string;
   status: string;
 }
 
@@ -50,7 +51,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const router = useRouter();
 
   const [universities, setUniversities] = useState<University[]>([
-    { name: "", status: "" },
+    { name: "", program: "", status: "" },
   ]);
   const [grades, setGrades] = useState<Grade[]>([
     {
@@ -105,7 +106,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         setUniversityAttendance(admissionData.university_attendance || "");
         setHighSchool(admissionData.high_school || "");
         setUniversities(
-          admissionData.universities || [{ name: "", status: "" }]
+          admissionData.universities || [{ name: "", program: "", status: "" }]
         );
 
         // Handle backward compatibility for grades: convert 'specialization' to 'type'
@@ -147,7 +148,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   };
 
   const addUniversity = () => {
-    setUniversities([...universities, { name: "", status: "" }]);
+    setUniversities([...universities, { name: "", program: "", status: "" }]);
     setHasUnsavedChanges(true);
   };
 
@@ -421,7 +422,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 {universities.map((university, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg"
+                    className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
                   >
                     <div>
                       <Label htmlFor={`university-${index}`}>
@@ -433,6 +434,17 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                         value={university.name}
                         onChange={(e) =>
                           updateUniversity(index, "name", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`program-${index}`}>Program</Label>
+                      <Input
+                        id={`program-${index}`}
+                        placeholder="e.g., Computer Science, Engineering"
+                        value={university.program}
+                        onChange={(e) =>
+                          updateUniversity(index, "program", e.target.value)
                         }
                       />
                     </div>
