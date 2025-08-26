@@ -29,7 +29,34 @@ export default function DashboardNavbar() {
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-4">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link href="/" prefetch className="text-xl font-bold text-blue-600">
+        <Link
+          href="/"
+          prefetch
+          className="text-xl font-bold text-blue-600 flex items-center gap-2"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="32" height="32" rx="6" fill="#2563eb" />
+            <path d="M16 6L28 12L16 18L4 12L16 6Z" fill="#ffffff" />
+            <path
+              d="M10 12V18C10 20.2091 12.7909 22 16 22C19.2091 22 22 20.2091 22 18V12"
+              stroke="#ffffff"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M22 14V20L24 22"
+              stroke="#ffffff"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
           admitme
         </Link>
 

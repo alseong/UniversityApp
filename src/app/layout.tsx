@@ -9,9 +9,14 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "admitme - University Admissions Transparency Platform",
+  title: "admitme | University Admissions Data",
   description:
     "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university admissions requirements.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
