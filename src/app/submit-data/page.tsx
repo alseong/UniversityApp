@@ -64,7 +64,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     },
   ]);
   const [useSimpleGradeEntry, setUseSimpleGradeEntry] = useState(false);
-  const [averageGrade, setAverageGrade] = useState("");
+  const [avgGrade11, setAvgGrade11] = useState("");
+  const [avgGrade12, setAvgGrade12] = useState("");
   const [universityAttendance, setUniversityAttendance] = useState("");
   const [highSchool, setHighSchool] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -116,9 +117,10 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         }));
 
         // Check if there's an average grade saved (simple entry mode)
-        if (admissionData.average_grade) {
+        if (admissionData.avg_grade_11 || admissionData.avg_grade_12) {
           setUseSimpleGradeEntry(true);
-          setAverageGrade(admissionData.average_grade);
+          setAvgGrade11(admissionData.avg_grade_11 || "");
+          setAvgGrade12(admissionData.avg_grade_12 || "");
         } else {
           setGrades(
             normalizedGrades.length > 0
@@ -226,7 +228,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     universityAttendance,
     highSchool,
     useSimpleGradeEntry,
-    averageGrade,
+    avgGrade11,
+    avgGrade12,
     hasUnsavedChanges,
   ]);
 
@@ -250,7 +253,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         high_school: highSchool,
         universities: universities,
         grades: useSimpleGradeEntry ? [] : grades,
-        average_grade: useSimpleGradeEntry ? averageGrade : null,
+        avg_grade_11: useSimpleGradeEntry ? avgGrade11 : null,
+        avg_grade_12: useSimpleGradeEntry ? avgGrade12 : null,
       };
 
       // Try to update existing data first, if it doesn't exist, insert new
@@ -512,17 +516,55 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
                 {useSimpleGradeEntry ? (
                   // Simple average grade entry
-                  <div className="space-y-2">
-                    <Label htmlFor="average-grade">Average Grade</Label>
-                    <Input
-                      id="average-grade"
-                      placeholder="e.g., 85%, 3.7 GPA, etc."
-                      value={averageGrade}
-                      onChange={(e) => {
-                        setAverageGrade(e.target.value);
-                        setHasUnsavedChanges(true);
-                      }}
-                    />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="avg-grade-11">
+                          Average Grade 11 Grade
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="avg-grade-11"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="85"
+                            value={avgGrade11}
+                            onChange={(e) => {
+                              setAvgGrade11(e.target.value);
+                              setHasUnsavedChanges(true);
+                            }}
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="avg-grade-12">
+                          Average Grade 12 Grade
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="avg-grade-12"
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="87"
+                            value={avgGrade12}
+                            onChange={(e) => {
+                              setAvgGrade12(e.target.value);
+                              setHasUnsavedChanges(true);
+                            }}
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   // Detailed grade entry
