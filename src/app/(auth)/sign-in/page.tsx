@@ -40,7 +40,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
               </p>
             </div>
 
-            <form className="space-y-4">
+            <form className="space-y-4" action={signInAction}>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">
@@ -79,11 +79,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
                 </div>
               </div>
 
-              <SubmitButton
-                className="w-full"
-                pendingText="Signing in..."
-                formAction={signInAction}
-              >
+              <SubmitButton className="w-full" pendingText="Signing in...">
                 Sign in
               </SubmitButton>
             </form>

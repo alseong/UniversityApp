@@ -42,57 +42,53 @@ export default async function Signup(props: {
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name" className="text-sm font-medium">
-                    Full Name
-                  </Label>
-                  <Input
-                    id="full_name"
-                    name="full_name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                    className="w-full"
-                  />
+              <form className="space-y-4" action={signUpAction}>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name" className="text-sm font-medium">
+                      Full Name
+                    </Label>
+                    <Input
+                      id="full_name"
+                      name="full_name"
+                      type="text"
+                      placeholder="John Doe"
+                      required
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      required
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      name="password"
+                      placeholder="Your password"
+                      minLength={6}
+                      required
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="Your password"
-                    minLength={6}
-                    required
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              <form className="space-y-4">
-                <SubmitButton
-                  formAction={signUpAction}
-                  pendingText="Signing up..."
-                  className="w-full"
-                >
+                <SubmitButton pendingText="Signing up..." className="w-full">
                   Sign up
                 </SubmitButton>
               </form>
