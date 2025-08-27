@@ -66,6 +66,7 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
+  // ✅ Redirect to dashboard after successful email/password authentication
   return redirect("/dashboard");
 };
 
@@ -153,6 +154,7 @@ export const signInWithGoogleAction = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
+      // ✅ Tell OAuth to redirect to dashboard after authentication via callback
       redirectTo: `${origin}/auth/callback?redirect_to=/dashboard`,
     },
   });

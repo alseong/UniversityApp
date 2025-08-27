@@ -29,7 +29,7 @@ export const updateSession = async (request: NextRequest) => {
   // Refresh session if expired - required for Server Components
   await supabase.auth.getUser();
 
-  // protected routes
+  // 🛡️ Protected routes - redirect unauthenticated users to sign-in
   if (request.nextUrl.pathname.startsWith("/dashboard")) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -37,7 +37,7 @@ export const updateSession = async (request: NextRequest) => {
     }
   }
 
-  // redirect authenticated users from landing page to dashboard
+  // ✅ Redirect already authenticated users from landing page to dashboard
   if (request.nextUrl.pathname === "/") {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

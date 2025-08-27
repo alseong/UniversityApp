@@ -8,10 +8,11 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
+    // Exchange OAuth code for user session
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // URL to redirect to after sign in process completes
+  // ✅ Redirect to dashboard (or custom redirect_to) after OAuth completion
   const redirectTo = redirect_to || "/dashboard";
   return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
 } 
