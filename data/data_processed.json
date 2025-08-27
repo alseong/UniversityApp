@@ -1,7 +1,7 @@
 {
   "metadata": {
     "source": "data_raw.json",
-    "processed_at": "2025-08-27T03:45:48.621Z",
+    "processed_at": "2025-08-27T06:28:11.315Z",
     "total_records": 2976,
     "processing_notes": "Schools, Programs, Status, Type, and Average normalized and cleaned",
     "original_headers": [

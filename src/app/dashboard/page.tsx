@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
+import GradeStatistics from "@/components/grade-statistics";
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -83,23 +84,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  Grade Analysis
-                </CardTitle>
-                <CardDescription>
-                  Compare your grades with successful applicants
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="animate-pulse bg-gray-200 h-24 w-full rounded mb-4"></div>
-                  <p className="text-sm text-gray-500">Coming Soon</p>
-                </div>
-              </CardContent>
-            </Card>
+            <GradeStatistics />
 
             <Card>
               <CardHeader>
