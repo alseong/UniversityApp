@@ -151,6 +151,11 @@ export const signInWithGoogleAction = async () => {
   const supabase = await createClient();
   const origin = headers().get("origin");
 
+  console.log("🔥 Google OAuth Debug:", {
+    origin,
+    redirectTo: `${origin}/auth/callback?redirect_to=/dashboard`
+  });
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -159,12 +164,20 @@ export const signInWithGoogleAction = async () => {
     },
   });
 
+  console.log("🔥 OAuth response:", {
+    hasData: !!data,
+    hasUrl: !!data?.url,
+    url: data?.url,
+    error: error?.message
+  });
+
   if (error) {
     console.error("Google sign-in error:", error);
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
   if (data?.url) {
+    console.log("🔥 Redirecting to OAuth URL:", data.url);
     return redirect(data.url);
   }
 
