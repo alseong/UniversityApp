@@ -160,7 +160,7 @@ export default function GradeStatistics() {
           <div>
             <label className="text-sm font-medium mb-2 block">School</label>
             <Select value={selectedSchool} onValueChange={setSelectedSchool}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10 px-3 py-2">
                 <SelectValue placeholder="Select school" />
               </SelectTrigger>
               <SelectContent>
@@ -177,7 +177,7 @@ export default function GradeStatistics() {
           <div>
             <label className="text-sm font-medium mb-2 block">Program</label>
             <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10 px-3 py-2">
                 <SelectValue placeholder="Select program" />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +194,7 @@ export default function GradeStatistics() {
           <div>
             <label className="text-sm font-medium mb-2 block">Status</label>
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10 px-3 py-2">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>

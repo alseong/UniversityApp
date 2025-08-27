@@ -14,6 +14,10 @@ import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import GradeStatistics from "@/components/grade-statistics";
+import CompetitivePrograms from "@/components/competitive-programs";
+import CompetitiveUniversities from "@/components/competitive-universities";
+import PopularSchools from "@/components/popular-schools";
+import PopularPrograms from "@/components/popular-programs";
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -64,80 +68,67 @@ export default function Dashboard() {
             </p>
           </header>
 
-          {/* Coming Soon Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
-                  Admission Statistics
-                </CardTitle>
-                <CardDescription>
-                  University acceptance rates and trends
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="animate-pulse bg-gray-200 h-24 w-full rounded mb-4"></div>
-                  <p className="text-sm text-gray-500">Coming Soon</p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Dashboard Cards */}
+          <div className="space-y-6 mb-8">
+            {/* First Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Enhanced Coming Soon Widget */}
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-xl">
+                    🚀 Enhanced Analytics Coming Soon!
+                  </CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Help us build the most comprehensive university admission
+                    insights
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <div className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>
+                        Analyze how universities evaluate grade inflation
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Grade averages for specific subjects</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>And more - please submit your feedback!</span>
+                    </div>
+                  </div>
 
-            <GradeStatistics />
+                  <div className="bg-blue-600 bg-opacity-10 rounded-lg p-4 text-center">
+                    <p className="text-sm text-blue-800 font-medium mb-3">
+                      🤝 Help us make this possible!
+                    </p>
+                    <p className="text-xs text-blue-700 mb-4">
+                      More student data = better insights for everyone
+                    </p>
+                    <Link href="/submit-data">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                        Share Your Data
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  Peer Insights
-                </CardTitle>
-                <CardDescription>
-                  See how others with similar profiles performed
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="animate-pulse bg-gray-200 h-24 w-full rounded mb-4"></div>
-                  <p className="text-sm text-gray-500">Coming Soon</p>
-                </div>
-              </CardContent>
-            </Card>
+              <GradeStatistics />
+              <CompetitivePrograms />
+            </div>
+
+            {/* Second Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <CompetitiveUniversities />
+              <PopularSchools />
+              <PopularPrograms />
+            </div>
           </div>
-
-          {/* Main Message */}
-          <Card className="text-center">
-            <CardHeader>
-              <CardTitle className="text-2xl">Dashboard Coming Soon!</CardTitle>
-              <CardDescription className="text-lg">
-                We will notify as soon as dashboard is ready.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Once we have enough data to provide meaningful insights, we'll
-                launch comprehensive analytics showing admission trends,
-                successful application strategies, and personalized
-                recommendations based on your profile.
-              </p>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="font-semibold text-blue-900 mb-2">
-                  Help us build this together!
-                </h3>
-                <p className="text-blue-800 text-sm mb-4">
-                  The more students who share their admission data, the better
-                  insights we can provide to help future applicants succeed.
-                </p>
-                <Link href="/submit-data">
-                  <Button className="inline-flex items-center gap-2">
-                    Share Your Admission Data
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
     </>
