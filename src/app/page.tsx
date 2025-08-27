@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Plus,
 } from "lucide-react";
-import { createClient } from "../../supabase/server";
 
 // Client component for auth-aware CTA button
 function CTAButton({ user }: { user: any }) {
@@ -27,12 +26,7 @@ function CTAButton({ user }: { user: any }) {
   );
 }
 
-export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Navbar />
@@ -106,7 +100,7 @@ export default async function Home() {
             Share your admission data anonymously and help future students make
             informed decisions. Every data point matters.
           </p>
-          <CTAButton user={user} />
+          <CTAButton user={null} />
         </div>
       </section>
 
