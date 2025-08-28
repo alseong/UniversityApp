@@ -1,8 +1,7 @@
 import Footer from "@/components/footer";
-import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
 import FAQStructuredData from "@/components/faq-structured-data";
-import DashboardPreview from "@/components/dashboard-preview";
+import HeroWithPreview from "@/components/hero-with-preview";
 import {
   ArrowUpRight,
   BarChart3,
@@ -31,10 +30,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Navbar />
-      <Hero />
-
-      {/* Dashboard Preview Section */}
-      <DashboardPreview />
+      <HeroWithPreview />
 
       {/* Features Section */}
       <section className="py-24 bg-white">

@@ -26,7 +26,7 @@ export default function Hero() {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-70" />
 
-      <div className="relative pt-24 pb-32 sm:pt-32 sm:pb-40">
+      <div className="relative pt-24 pb-16 sm:pt-32 sm:pb-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8 tracking-tight">

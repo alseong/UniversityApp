@@ -56,13 +56,15 @@ export default function DashboardPreview() {
   };
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-16 bg-gradient-to-br from-white via-gray-50 to-blue-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Dashboard Preview</h2>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4 text-gray-900">
+            See What You'll Get Access To
+          </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Get a sneak peek at the insights you'll have access to. Sign up to
-            see complete data and advanced analytics.
+            Real insights from actual admission data. Here's a preview of the
+            powerful analytics waiting for you.
           </p>
         </div>
 
