@@ -25,6 +25,69 @@ export default function GradeStatistics() {
   const { allRecords, schools, programs, statuses } =
     useProcessedAdmissionData();
 
+  // Dynamically filter programs based on selected school
+  const availablePrograms = useMemo(() => {
+    if (filters.school === "All") {
+      return programs;
+    }
+
+    // Find all programs that have records with the selected school
+    const programCounts: { [key: string]: number } = {};
+
+    allRecords.forEach((record) => {
+      // Only consider records that include the selected school
+      if (record.school.includes(filters.school)) {
+        record.program.forEach((program) => {
+          programCounts[program] = (programCounts[program] || 0) + 1;
+        });
+      }
+    });
+
+    // Filter programs to only include those with at least 3 records for this school
+    const filteredPrograms = Object.entries(programCounts)
+      .filter(([_, count]) => count >= 3)
+      .map(([program, _]) => program)
+      .sort();
+
+    return ["All", ...filteredPrograms];
+  }, [allRecords, filters.school, programs]);
+
+  // Dynamically filter schools based on selected program
+  const availableSchools = useMemo(() => {
+    if (filters.program === "All") {
+      return schools;
+    }
+
+    // Find all schools that have records with the selected program
+    const schoolCounts: { [key: string]: number } = {};
+
+    allRecords.forEach((record) => {
+      // Only consider records that include the selected program
+      if (record.program.includes(filters.program)) {
+        record.school.forEach((school) => {
+          schoolCounts[school] = (schoolCounts[school] || 0) + 1;
+        });
+      }
+    });
+
+    // Filter schools to only include those with at least 3 records for this program
+    const filteredSchools = Object.entries(schoolCounts)
+      .filter(([_, count]) => count >= 3)
+      .map(([school, _]) => school)
+      .sort();
+
+    return ["All", ...filteredSchools];
+  }, [allRecords, filters.program, schools]);
+
+  // Handler functions for filter changes
+  const handleSchoolChange = (value: string) => {
+    setFilters((prev) => ({ ...prev, school: value }));
+  };
+
+  const handleProgramChange = (value: string) => {
+    setFilters((prev) => ({ ...prev, program: value }));
+  };
+
   const filteredData = useMemo(() => {
     return allRecords.filter(createDataFilter(filters));
   }, [allRecords, filters]);
@@ -51,12 +114,10 @@ export default function GradeStatistics() {
             <label className="text-sm font-medium mb-2 block">School</label>
             <SearchableSelect
               value={filters.school}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, school: value }))
-              }
+              onValueChange={handleSchoolChange}
               placeholder="Select school"
               searchPlaceholder="Search schools..."
-              options={schools.map((school) => ({
+              options={availableSchools.map((school) => ({
                 value: school,
                 label: school,
               }))}
@@ -67,12 +128,10 @@ export default function GradeStatistics() {
             <label className="text-sm font-medium mb-2 block">Program</label>
             <SearchableSelect
               value={filters.program}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, program: value }))
-              }
+              onValueChange={handleProgramChange}
               placeholder="Select program"
               searchPlaceholder="Search programs..."
-              options={programs.map((program) => ({
+              options={availablePrograms.map((program) => ({
                 value: program,
                 label: program,
               }))}

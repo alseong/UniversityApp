@@ -42,7 +42,10 @@ export function SearchableSelect({
   }, [options, searchValue]);
 
   const handleSelect = (optionValue: string) => {
-    onValueChange?.(optionValue === value ? "" : optionValue);
+    // Only change value if it's different from current selection
+    if (optionValue !== value) {
+      onValueChange?.(optionValue);
+    }
     setOpen(false);
     setSearchValue("");
   };
