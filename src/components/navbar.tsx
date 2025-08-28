@@ -104,6 +104,12 @@ export default function Navbar() {
           {user ? (
             <>
               <Link
+                href="/blog"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Blog
+              </Link>
+              <Link
                 href="/dashboard"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
@@ -130,6 +136,12 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <Link
+                href="/blog"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Blog
+              </Link>
               <Link
                 href="/feedback"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"

@@ -243,9 +243,6 @@ export default function HeroWithPreview() {
                           <div className="font-medium text-sm">
                             {school.name}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {school.acceptanceRate}% acceptance rate
-                          </div>
                         </div>
                       </div>
                       <div className="text-right">

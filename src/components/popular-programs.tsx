@@ -61,9 +61,6 @@ export default function PopularPrograms() {
                   </div>
                   <div>
                     <div className="font-medium text-sm">{program.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {program.acceptanceRate}% acceptance rate
-                    </div>
                   </div>
                 </div>
                 <div className="text-right">
