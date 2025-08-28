@@ -152,11 +152,11 @@ export default function HeroWithPreview() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">
-              See What You'll Get Access To
+              Some of What You'll Get Access To
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Real insights from actual admission data. Here's a preview of the
-              powerful analytics waiting for you.
+              Real insights from actual admission data. Here's a preview of some
+              of the powerful analytics waiting for you.
             </p>
           </div>
 
