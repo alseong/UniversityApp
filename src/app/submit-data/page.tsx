@@ -24,11 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { FormMessage } from "@/components/form-message";
+import { AutocompleteInput } from "@/components/ui/autocomplete-input";
+import { useToast } from "@/components/ui/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
+import { getUniversityNames, getProgramNames } from "@/utils/university-data";
 
 interface University {
   name: string;
@@ -50,6 +53,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
 
   const [universities, setUniversities] = useState<University[]>([
     { name: "", program: "", status: "" },
@@ -74,6 +79,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [universityOptions, setUniversityOptions] = useState<string[]>([]);
+  const [programOptions, setProgramOptions] = useState<string[]>([]);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -93,6 +101,21 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     };
     checkUser();
   }, [router]);
+
+  // Load university and program options
+  useEffect(() => {
+    try {
+      const universities = getUniversityNames();
+      const programs = getProgramNames();
+      setUniversityOptions(universities);
+      setProgramOptions(programs);
+      setDataLoaded(true);
+    } catch (error) {
+      console.error("Error loading university data:", error);
+      // Still set as loaded even on error so form is usable
+      setDataLoaded(true);
+    }
+  }, []);
 
   const loadExistingData = async (userId: string, supabase: any) => {
     try {
@@ -217,35 +240,170 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     });
   };
 
-  // Auto-save functionality
+  // Warn before leaving with unsaved changes
   useEffect(() => {
-    if (!user || !hasUnsavedChanges) return;
-
-    const autoSaveTimer = setTimeout(() => {
-      handleSave(true); // Pass true for silent auto-save
-    }, 2000); // Auto-save after 2 seconds of inactivity
-
-    return () => clearTimeout(autoSaveTimer);
-  }, [
-    universities,
-    grades,
-    universityAttendance,
-    highSchool,
-    otherAchievements,
-    useSimpleGradeEntry,
-    avgGrade11,
-    avgGrade12,
-    hasUnsavedChanges,
-  ]);
-
-  const handleSave = async (isAutoSave = false) => {
-    if (!validateGrades()) {
-      if (!isAutoSave) {
-        // Show validation error in UI instead of alert
-        console.error(
-          "Validation failed: IB marks must be 1-7, AP marks must be 1-5"
-        );
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue =
+          "You have unsaved changes. Are you sure you want to leave?";
+        return "You have unsaved changes. Are you sure you want to leave?";
       }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Intercept navigation attempts via Link clicks
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      console.log("Link click detected:", e.target); // Debug log
+
+      if (!hasUnsavedChanges) {
+        console.log("No unsaved changes, allowing navigation");
+        return;
+      }
+
+      const target = e.target as HTMLElement;
+
+      // Check if clicked element or its parent is a link
+      const link = target.closest("a[href]") as HTMLAnchorElement;
+      if (!link) {
+        console.log("No link found");
+        return;
+      }
+
+      const href = link.getAttribute("href");
+      console.log("Link href:", href);
+
+      if (!href) return;
+
+      // Only intercept internal links (not external URLs)
+      if (
+        href.startsWith("http") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:")
+      ) {
+        console.log("External link, not intercepting");
+        return;
+      }
+
+      // Don't intercept if it's the same page
+      if (href === window.location.pathname) {
+        console.log("Same page, not intercepting");
+        return;
+      }
+
+      console.log("Intercepting navigation to:", href);
+
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave this page?"
+      );
+
+      if (!confirmed) {
+        console.log("Navigation cancelled by user");
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      } else {
+        console.log("Navigation confirmed by user");
+      }
+    };
+
+    // Add event listener to document to catch all link clicks
+    document.addEventListener("click", handleLinkClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleLinkClick, true);
+    };
+  }, [hasUnsavedChanges]);
+
+  // Additional protection: Override router navigation methods
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const originalPush = router.push;
+    const originalReplace = router.replace;
+    const originalBack = router.back;
+    const originalForward = router.forward;
+
+    router.push = (href: string, options?: any) => {
+      console.log("Router.push intercepted:", href);
+      if (hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          "You have unsaved changes. Are you sure you want to leave this page?"
+        );
+        if (!confirmed) {
+          console.log("Router navigation cancelled");
+          return Promise.resolve(false);
+        }
+      }
+      return originalPush.call(router, href, options);
+    };
+
+    router.replace = (href: string, options?: any) => {
+      console.log("Router.replace intercepted:", href);
+      if (hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          "You have unsaved changes. Are you sure you want to leave this page?"
+        );
+        if (!confirmed) {
+          console.log("Router replace cancelled");
+          return Promise.resolve(false);
+        }
+      }
+      return originalReplace.call(router, href, options);
+    };
+
+    router.back = () => {
+      console.log("Router.back intercepted");
+      if (hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          "You have unsaved changes. Are you sure you want to leave this page?"
+        );
+        if (!confirmed) {
+          console.log("Router back cancelled");
+          return;
+        }
+      }
+      originalBack.call(router);
+    };
+
+    router.forward = () => {
+      console.log("Router.forward intercepted");
+      if (hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          "You have unsaved changes. Are you sure you want to leave this page?"
+        );
+        if (!confirmed) {
+          console.log("Router forward cancelled");
+          return;
+        }
+      }
+      originalForward.call(router);
+    };
+
+    return () => {
+      // Restore original methods
+      router.push = originalPush;
+      router.replace = originalReplace;
+      router.back = originalBack;
+      router.forward = originalForward;
+    };
+  }, [hasUnsavedChanges, router]);
+
+  const handleSave = async () => {
+    if (!validateGrades()) {
+      // Show validation error as toast
+      toast({
+        title: "Validation Error",
+        description:
+          "Please fix invalid grades before saving: IB marks must be 1-7, AP marks must be 1-5",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -293,10 +451,20 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
 
-      // Success feedback shown via UI status instead of alert
+      // Show success toast
+      toast({
+        title: "Success!",
+        description: "Your admission data has been saved successfully.",
+      });
     } catch (error) {
       console.error("Save error:", error);
-      // Error feedback shown via UI status instead of alert
+
+      // Show error toast
+      toast({
+        title: "Save Error",
+        description: "Failed to save your data. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -329,7 +497,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               {/* Top Save Button */}
               <div className="flex flex-col items-end space-y-1">
                 <Button
-                  onClick={() => handleSave(false)}
+                  onClick={() => handleSave()}
                   disabled={!validateGrades() || isSaving}
                   className={`px-6 py-2 ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
@@ -338,7 +506,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
                 {/* Status indicator */}
                 <div className="text-xs text-right">
-                  {isSaving && <p className="text-blue-600">Auto-saving...</p>}
+                  {isSaving && <p className="text-blue-600">Saving...</p>}
                   {lastSaved && !isSaving && (
                     <p className="text-gray-500">
                       {hasUnsavedChanges
@@ -433,24 +601,28 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                       <Label htmlFor={`university-${index}`}>
                         University Name
                       </Label>
-                      <Input
+                      <AutocompleteInput
                         id={`university-${index}`}
                         placeholder="e.g., University of Toronto"
                         value={university.name}
-                        onChange={(e) =>
-                          updateUniversity(index, "name", e.target.value)
+                        onChange={(value) =>
+                          updateUniversity(index, "name", value)
                         }
+                        options={universityOptions}
+                        emptyMessage="No universities found. You can type your own university name."
                       />
                     </div>
                     <div>
                       <Label htmlFor={`program-${index}`}>Program</Label>
-                      <Input
+                      <AutocompleteInput
                         id={`program-${index}`}
                         placeholder="e.g., Computer Science, Engineering"
                         value={university.program}
-                        onChange={(e) =>
-                          updateUniversity(index, "program", e.target.value)
+                        onChange={(value) =>
+                          updateUniversity(index, "program", value)
                         }
+                        options={programOptions}
+                        emptyMessage="No programs found. You can type your own program name."
                       />
                     </div>
                     <div>
@@ -812,7 +984,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
             {/* Save Button */}
             <div className="flex flex-col items-center space-y-2">
               <Button
-                onClick={() => handleSave(false)}
+                onClick={() => handleSave()}
                 disabled={!validateGrades() || isSaving}
                 className={`px-8 py-3 text-lg ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
               >
@@ -824,9 +996,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 </p>
               )}
               {isSaving && (
-                <p className="text-sm text-blue-600 text-center">
-                  Auto-saving...
-                </p>
+                <p className="text-sm text-blue-600 text-center">Saving...</p>
               )}
               {lastSaved && !isSaving && (
                 <p className="text-sm text-gray-600 text-center">
