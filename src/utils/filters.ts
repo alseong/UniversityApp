@@ -35,12 +35,12 @@ export const createDataFilter = (filters: FilterState) => {
 
 export const filterValidRecords = (records: AdmissionRecord[]): AdmissionRecord[] => {
   return records.filter(record => {
-    const average = parseFloat(record.Average);
     return (
-      record.Average !== "" &&
-      !isNaN(average) &&
-      average >= 50 &&
-      average <= 100
+      record.Average !== null &&
+      typeof record.Average === 'number' &&
+      !isNaN(record.Average) &&
+      record.Average >= 50 &&
+      record.Average <= 100
     );
   });
 };
