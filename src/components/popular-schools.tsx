@@ -9,12 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, TrendingUp } from "lucide-react";
-import finalData from "../../data/data_final.json";
+import processedData from "../../data/data_processed.json";
 
 interface AdmissionRecord {
-  Average: number | null;
-  Schools: string[];
-  Programs: string[];
+  Average: string;
+  school: string[];
+  Program: string;
   Status: string;
 }
 
@@ -26,14 +26,14 @@ interface SchoolPopularity {
 
 export default function PopularSchools() {
   const schoolStats = useMemo((): SchoolPopularity[] => {
-    const data = finalData.data as AdmissionRecord[];
+    const data = processedData.data as AdmissionRecord[];
 
     // Count applications and acceptances for each school
     const schoolData: { [key: string]: { total: number; accepted: number } } =
       {};
 
     data.forEach((record) => {
-      record.Schools.forEach((school) => {
+      record.school.forEach((school) => {
         if (!schoolData[school]) {
           schoolData[school] = { total: 0, accepted: 0 };
         }
@@ -51,7 +51,7 @@ export default function PopularSchools() {
         applicationCount: counts.total,
         acceptanceRate: Math.round((counts.accepted / counts.total) * 100),
       }))
-      .filter((stat) => stat.applicationCount >= 10) // Only include schools with 10+ applications
+      .filter((stat) => stat.applicationCount >= 1) // Include all schools with at least 1 application
       .sort((a, b) => b.applicationCount - a.applicationCount); // Sort by most applications
 
     return stats;

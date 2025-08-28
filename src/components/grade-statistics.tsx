@@ -8,66 +8,61 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { TrendingUp } from "lucide-react";
-import finalData from "../../data/data_final.json";
+import processedData from "../../data/data_processed.json";
 
-// Schools that actually have data (based on process_schools.js output)
-const SCHOOLS_WITH_DATA = [
-  "University of Waterloo", // 669 records
-  "McMaster University", // 348 records
-  "University of Toronto St. George", // 290 records
-  "Western University", // 247 records
-  "Queen's University", // 190 records
-  "Toronto Metropolitan University", // 174 records
-  "Wilfrid Laurier University", // 140 records
-  "York University", // 126 records
-  "University of Ottawa", // 97 records
-  "Carleton University", // 94 records
-  "University of Toronto Scarborough", // 61 records
-  "University of Guelph", // 61 records
-  "McGill University", // 46 records
-  "University of Toronto Mississauga", // 46 records
-  "Brock University", // 20 records
-];
+// Dynamically extract schools, programs, and statuses from the data
+const getUniqueValues = () => {
+  const data = processedData.data as AdmissionRecord[];
 
-// Programs that actually have data (based on process_schools.js output)
-const PROGRAMS_WITH_DATA = [
-  "Computer Science", // 599 records
-  "Business Administration", // 160 records
-  "Engineering", // 139 records
-  "Computer Engineering", // 114 records
-  "Commerce", // 89 records
-  "Life Sciences", // 83 records
-  "Mathematics", // 80 records
-  "Health Sciences", // 70 records
-  "Software Engineering", // 66 records
-  "Mechanical Engineering", // 41 records
-  "Electrical Engineering", // 38 records
-  "Engineering Science", // 36 records
-  "Science", // 34 records
-  "Biomedical Engineering", // 26 records
-  "Medical Sciences", // 22 records
-];
+  const schoolCounts: { [key: string]: number } = {};
+  const programCounts: { [key: string]: number } = {};
+  const statusCounts: { [key: string]: number } = {};
 
-// Statuses that actually have data (based on process_schools.js output)
-const STATUSES_WITH_DATA = [
-  "Accepted", // 2528 records
-  "Rejected", // 232 records
-  "Deferred", // 172 records
-  "Waitlisted", // 44 records
-];
+  data.forEach((record) => {
+    // Count schools
+    record.school.forEach((school) => {
+      schoolCounts[school] = (schoolCounts[school] || 0) + 1;
+    });
+
+    // Count programs
+    if (record.Program) {
+      programCounts[record.Program] = (programCounts[record.Program] || 0) + 1;
+    }
+
+    // Count statuses
+    if (record.Status) {
+      statusCounts[record.Status] = (statusCounts[record.Status] || 0) + 1;
+    }
+  });
+
+  // Sort by count (descending) and return arrays
+  const schools = Object.entries(schoolCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([school]) => school);
+
+  const programs = Object.entries(programCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([program]) => program);
+
+  const statuses = Object.entries(statusCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([status]) => status);
+
+  return { schools, programs, statuses };
+};
+
+const {
+  schools: SCHOOLS_WITH_DATA,
+  programs: PROGRAMS_WITH_DATA,
+  statuses: STATUSES_WITH_DATA,
+} = getUniqueValues();
 
 interface AdmissionRecord {
-  Average: number | null;
-  Schools: string[];
-  Programs: string[];
+  Average: string;
+  school: string[];
+  Program: string;
   Status: string;
 }
 
@@ -82,23 +77,17 @@ export default function GradeStatistics() {
   const [selectedProgram, setSelectedProgram] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
 
-  const data = finalData.data as AdmissionRecord[];
+  const data = processedData.data as AdmissionRecord[];
 
   const filteredData = useMemo(() => {
     return data.filter((record) => {
       // Filter by school
-      if (
-        selectedSchool !== "All" &&
-        !record.Schools.includes(selectedSchool)
-      ) {
+      if (selectedSchool !== "All" && !record.school.includes(selectedSchool)) {
         return false;
       }
 
       // Filter by program
-      if (
-        selectedProgram !== "All" &&
-        !record.Programs.includes(selectedProgram)
-      ) {
+      if (selectedProgram !== "All" && record.Program !== selectedProgram) {
         return false;
       }
 
@@ -109,11 +98,12 @@ export default function GradeStatistics() {
 
       // Only include records with valid percentage averages (50-100)
       // This filters out GPA values (0-4.5) and obvious errors (>100 or <50)
+      const average = parseFloat(record.Average);
       return (
-        record.Average !== null &&
-        typeof record.Average === "number" &&
-        record.Average >= 50 &&
-        record.Average <= 100
+        record.Average !== "" &&
+        !isNaN(average) &&
+        average >= 50 &&
+        average <= 100
       );
     });
   }, [data, selectedSchool, selectedProgram, selectedStatus]);
@@ -124,7 +114,7 @@ export default function GradeStatistics() {
     }
 
     const averages = filteredData
-      .map((record) => record.Average!)
+      .map((record) => parseFloat(record.Average))
       .sort((a, b) => a - b);
 
     const sum = averages.reduce((acc, avg) => acc + avg, 0);
@@ -159,53 +149,53 @@ export default function GradeStatistics() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">School</label>
-            <Select value={selectedSchool} onValueChange={setSelectedSchool}>
-              <SelectTrigger className="h-10 px-3 py-2">
-                <SelectValue placeholder="Select school" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Schools</SelectItem>
-                {SCHOOLS_WITH_DATA.map((school: string) => (
-                  <SelectItem key={school} value={school}>
-                    {school}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={selectedSchool}
+              onValueChange={setSelectedSchool}
+              placeholder="Select school"
+              searchPlaceholder="Search schools..."
+              options={[
+                { value: "All", label: "All Schools" },
+                ...SCHOOLS_WITH_DATA.map((school: string) => ({
+                  value: school,
+                  label: school,
+                })),
+              ]}
+            />
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">Program</label>
-            <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger className="h-10 px-3 py-2">
-                <SelectValue placeholder="Select program" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Programs</SelectItem>
-                {PROGRAMS_WITH_DATA.map((program: string) => (
-                  <SelectItem key={program} value={program}>
-                    {program}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={selectedProgram}
+              onValueChange={setSelectedProgram}
+              placeholder="Select program"
+              searchPlaceholder="Search programs..."
+              options={[
+                { value: "All", label: "All Programs" },
+                ...PROGRAMS_WITH_DATA.map((program: string) => ({
+                  value: program,
+                  label: program,
+                })),
+              ]}
+            />
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">Status</label>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="h-10 px-3 py-2">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Statuses</SelectItem>
-                {STATUSES_WITH_DATA.map((status: string) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={selectedStatus}
+              onValueChange={setSelectedStatus}
+              placeholder="Select status"
+              searchPlaceholder="Search statuses..."
+              options={[
+                { value: "All", label: "All Statuses" },
+                ...STATUSES_WITH_DATA.map((status: string) => ({
+                  value: status,
+                  label: status,
+                })),
+              ]}
+            />
           </div>
         </div>
 

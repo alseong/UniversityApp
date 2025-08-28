@@ -9,12 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, TrendingUp } from "lucide-react";
-import finalData from "../../data/data_final.json";
+import processedData from "../../data/data_processed.json";
 
 interface AdmissionRecord {
-  Average: number | null;
-  Schools: string[];
-  Programs: string[];
+  Average: string;
+  school: string[];
+  Program: string;
   Status: string;
 }
 
@@ -26,27 +26,29 @@ interface UniversityStats {
 
 export default function CompetitiveUniversities() {
   const universityStats = useMemo((): UniversityStats[] => {
-    const data = finalData.data as AdmissionRecord[];
+    const data = processedData.data as AdmissionRecord[];
 
     // Filter for accepted students with valid percentage grades (50-100)
-    const acceptedRecords = data.filter(
-      (record) =>
+    const acceptedRecords = data.filter((record) => {
+      const average = parseFloat(record.Average);
+      return (
         record.Status === "Accepted" &&
-        record.Average !== null &&
-        typeof record.Average === "number" &&
-        record.Average >= 50 &&
-        record.Average <= 100
-    );
+        record.Average !== "" &&
+        !isNaN(average) &&
+        average >= 50 &&
+        average <= 100
+      );
+    });
 
     // Group by university and calculate averages
     const universityData: { [key: string]: number[] } = {};
 
     acceptedRecords.forEach((record) => {
-      record.Schools.forEach((school) => {
+      record.school.forEach((school) => {
         if (!universityData[school]) {
           universityData[school] = [];
         }
-        universityData[school].push(record.Average!);
+        universityData[school].push(parseFloat(record.Average));
       });
     });
 
@@ -60,7 +62,7 @@ export default function CompetitiveUniversities() {
           ) / 10,
         recordCount: grades.length,
       }))
-      .filter((stat) => stat.recordCount >= 10) // Only include universities with 10+ records
+      .filter((stat) => stat.recordCount >= 1) // Include all universities with at least 1 record
       .sort((a, b) => b.averageGrade - a.averageGrade); // Sort by highest average (most competitive)
 
     return stats;

@@ -9,12 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, TrendingUp } from "lucide-react";
-import finalData from "../../data/data_final.json";
+import processedData from "../../data/data_processed.json";
 
 interface AdmissionRecord {
-  Average: number | null;
-  Schools: string[];
-  Programs: string[];
+  Average: string;
+  school: string[];
+  Program: string;
   Status: string;
 }
 
@@ -26,28 +26,29 @@ interface ProgramStats {
 
 export default function CompetitivePrograms() {
   const programStats = useMemo((): ProgramStats[] => {
-    const data = finalData.data as AdmissionRecord[];
+    const data = processedData.data as AdmissionRecord[];
 
     // Filter for accepted students with valid percentage grades (50-100)
-    const acceptedRecords = data.filter(
-      (record) =>
+    const acceptedRecords = data.filter((record) => {
+      const average = parseFloat(record.Average);
+      return (
         record.Status === "Accepted" &&
-        record.Average !== null &&
-        typeof record.Average === "number" &&
-        record.Average >= 50 &&
-        record.Average <= 100
-    );
+        record.Average !== "" &&
+        !isNaN(average) &&
+        average >= 50 &&
+        average <= 100
+      );
+    });
 
     // Group by program and calculate averages
     const programData: { [key: string]: number[] } = {};
 
     acceptedRecords.forEach((record) => {
-      record.Programs.forEach((program) => {
-        if (!programData[program]) {
-          programData[program] = [];
-        }
-        programData[program].push(record.Average!);
-      });
+      const program = record.Program;
+      if (!programData[program]) {
+        programData[program] = [];
+      }
+      programData[program].push(parseFloat(record.Average));
     });
 
     // Calculate average for each program and sort by competitiveness
@@ -60,7 +61,7 @@ export default function CompetitivePrograms() {
           ) / 10,
         recordCount: grades.length,
       }))
-      .filter((stat) => stat.recordCount >= 10) // Only include programs with 10+ records
+      .filter((stat) => stat.recordCount >= 1) // Include all programs with at least 1 record
       .sort((a, b) => b.averageGrade - a.averageGrade); // Sort by highest average (most competitive)
 
     return stats;

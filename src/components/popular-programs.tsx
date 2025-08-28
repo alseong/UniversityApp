@@ -9,12 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, TrendingUp } from "lucide-react";
-import finalData from "../../data/data_final.json";
+import processedData from "../../data/data_processed.json";
 
 interface AdmissionRecord {
-  Average: number | null;
-  Schools: string[];
-  Programs: string[];
+  Average: string;
+  school: string[];
+  Program: string;
   Status: string;
 }
 
@@ -26,22 +26,21 @@ interface ProgramPopularity {
 
 export default function PopularPrograms() {
   const programStats = useMemo((): ProgramPopularity[] => {
-    const data = finalData.data as AdmissionRecord[];
+    const data = processedData.data as AdmissionRecord[];
 
     // Count applications and acceptances for each program
     const programData: { [key: string]: { total: number; accepted: number } } =
       {};
 
     data.forEach((record) => {
-      record.Programs.forEach((program) => {
-        if (!programData[program]) {
-          programData[program] = { total: 0, accepted: 0 };
-        }
-        programData[program].total++;
-        if (record.Status === "Accepted") {
-          programData[program].accepted++;
-        }
-      });
+      const program = record.Program;
+      if (!programData[program]) {
+        programData[program] = { total: 0, accepted: 0 };
+      }
+      programData[program].total++;
+      if (record.Status === "Accepted") {
+        programData[program].accepted++;
+      }
     });
 
     // Calculate stats and sort by popularity (total applications)
@@ -51,7 +50,7 @@ export default function PopularPrograms() {
         applicationCount: counts.total,
         acceptanceRate: Math.round((counts.accepted / counts.total) * 100),
       }))
-      .filter((stat) => stat.applicationCount >= 10) // Only include programs with 10+ applications
+      .filter((stat) => stat.applicationCount >= 1) // Include all programs with at least 1 application
       .sort((a, b) => b.applicationCount - a.applicationCount); // Sort by most applications
 
     return stats;
