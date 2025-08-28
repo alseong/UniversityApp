@@ -79,6 +79,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [navigationConfirmed, setNavigationConfirmed] = useState(false);
   const [universityOptions, setUniversityOptions] = useState<string[]>([]);
   const [programOptions, setProgramOptions] = useState<string[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -310,6 +311,10 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         return false;
       } else {
         console.log("Navigation confirmed by user");
+        // Set flag to prevent double confirmation from router override
+        setNavigationConfirmed(true);
+        // Reset flag after navigation completes
+        setTimeout(() => setNavigationConfirmed(false), 100);
       }
     };
 
@@ -319,7 +324,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     return () => {
       document.removeEventListener("click", handleLinkClick, true);
     };
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, setNavigationConfirmed]);
 
   // Additional protection: Override router navigation methods
   useEffect(() => {
@@ -332,7 +337,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
     router.push = (href: string, options?: any) => {
       console.log("Router.push intercepted:", href);
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !navigationConfirmed) {
         const confirmed = window.confirm(
           "You have unsaved changes. Are you sure you want to leave this page?"
         );
@@ -346,7 +351,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
     router.replace = (href: string, options?: any) => {
       console.log("Router.replace intercepted:", href);
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !navigationConfirmed) {
         const confirmed = window.confirm(
           "You have unsaved changes. Are you sure you want to leave this page?"
         );
@@ -360,7 +365,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
     router.back = () => {
       console.log("Router.back intercepted");
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !navigationConfirmed) {
         const confirmed = window.confirm(
           "You have unsaved changes. Are you sure you want to leave this page?"
         );
@@ -374,7 +379,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
     router.forward = () => {
       console.log("Router.forward intercepted");
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !navigationConfirmed) {
         const confirmed = window.confirm(
           "You have unsaved changes. Are you sure you want to leave this page?"
         );
@@ -393,7 +398,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       router.back = originalBack;
       router.forward = originalForward;
     };
-  }, [hasUnsavedChanges, router]);
+  }, [hasUnsavedChanges, navigationConfirmed, router]);
 
   const handleSave = async () => {
     if (!validateGrades()) {
@@ -450,6 +455,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
+      setNavigationConfirmed(false); // Reset navigation flag when data is saved
 
       // Show success toast
       toast({
