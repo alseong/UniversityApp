@@ -76,7 +76,7 @@ export default function Dashboard() {
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200">
                 <CardHeader>
                   <CardTitle className="text-xl">
-                    🚀 Enhanced Analytics Coming Soon!
+                    Improvements Coming Soon!
                   </CardTitle>
                   <CardDescription className="text-blue-700">
                     Help us build the most comprehensive university admission
