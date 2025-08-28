@@ -9,53 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, TrendingUp } from "lucide-react";
-import processedData from "../../data/data_processed.json";
-
-interface AdmissionRecord {
-  Average: string;
-  school: string[];
-  Program: string;
-  Status: string;
-}
-
-interface SchoolPopularity {
-  name: string;
-  applicationCount: number;
-  acceptanceRate: number;
-}
+import { RankingItem } from "@/types/dashboard";
+import { useProcessedAdmissionData } from "@/utils/data";
+import { calculatePopularityRankings } from "@/utils/statistics";
 
 export default function PopularSchools() {
-  const schoolStats = useMemo((): SchoolPopularity[] => {
-    const data = processedData.data as AdmissionRecord[];
+  const { allRecords } = useProcessedAdmissionData();
 
-    // Count applications and acceptances for each school
-    const schoolData: { [key: string]: { total: number; accepted: number } } =
-      {};
-
-    data.forEach((record) => {
-      record.school.forEach((school) => {
-        if (!schoolData[school]) {
-          schoolData[school] = { total: 0, accepted: 0 };
-        }
-        schoolData[school].total++;
-        if (record.Status === "Accepted") {
-          schoolData[school].accepted++;
-        }
-      });
-    });
-
-    // Calculate stats and sort by popularity (total applications)
-    const stats = Object.entries(schoolData)
-      .map(([name, counts]) => ({
-        name,
-        applicationCount: counts.total,
-        acceptanceRate: Math.round((counts.accepted / counts.total) * 100),
-      }))
-      .filter((stat) => stat.applicationCount >= 1) // Include all schools with at least 1 application
-      .sort((a, b) => b.applicationCount - a.applicationCount); // Sort by most applications
-
-    return stats;
-  }, []);
+  const schoolStats = useMemo((): RankingItem[] => {
+    return calculatePopularityRankings(allRecords, "school");
+  }, [allRecords]);
 
   const getPopularityLevel = (count: number): string => {
     if (count >= 500) return "Extremely Popular";
@@ -105,12 +68,12 @@ export default function PopularSchools() {
                 </div>
                 <div className="text-right">
                   <div
-                    className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(school.applicationCount)}`}
+                    className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(school.applicationCount || 0)}`}
                   >
                     {school.applicationCount}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {getPopularityLevel(school.applicationCount)}
+                    {getPopularityLevel(school.applicationCount || 0)}
                   </div>
                 </div>
               </div>

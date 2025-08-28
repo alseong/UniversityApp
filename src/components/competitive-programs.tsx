@@ -9,63 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, TrendingUp } from "lucide-react";
-import processedData from "../../data/data_processed.json";
-
-interface AdmissionRecord {
-  Average: string;
-  school: string[];
-  Program: string;
-  Status: string;
-}
-
-interface ProgramStats {
-  name: string;
-  averageGrade: number;
-  recordCount: number;
-}
+import { RankingItem } from "@/types/dashboard";
+import { useProcessedAdmissionData } from "@/utils/data";
+import { calculateCompetitiveRankings } from "@/utils/statistics";
 
 export default function CompetitivePrograms() {
-  const programStats = useMemo((): ProgramStats[] => {
-    const data = processedData.data as AdmissionRecord[];
+  const { acceptedRecords } = useProcessedAdmissionData();
 
-    // Filter for accepted students with valid percentage grades (50-100)
-    const acceptedRecords = data.filter((record) => {
-      const average = parseFloat(record.Average);
-      return (
-        record.Status === "Accepted" &&
-        record.Average !== "" &&
-        !isNaN(average) &&
-        average >= 50 &&
-        average <= 100
-      );
-    });
-
-    // Group by program and calculate averages
-    const programData: { [key: string]: number[] } = {};
-
-    acceptedRecords.forEach((record) => {
-      const program = record.Program;
-      if (!programData[program]) {
-        programData[program] = [];
-      }
-      programData[program].push(parseFloat(record.Average));
-    });
-
-    // Calculate average for each program and sort by competitiveness
-    const stats = Object.entries(programData)
-      .map(([name, grades]) => ({
-        name,
-        averageGrade:
-          Math.round(
-            (grades.reduce((sum, grade) => sum + grade, 0) / grades.length) * 10
-          ) / 10,
-        recordCount: grades.length,
-      }))
-      .filter((stat) => stat.recordCount >= 1) // Include all programs with at least 1 record
-      .sort((a, b) => b.averageGrade - a.averageGrade); // Sort by highest average (most competitive)
-
-    return stats;
-  }, []);
+  const programStats = useMemo((): RankingItem[] => {
+    return calculateCompetitiveRankings(acceptedRecords, "program");
+  }, [acceptedRecords]);
 
   const getCompetitivenessLabel = (averageGrade: number): string => {
     if (averageGrade >= 96) return "Extremely Competitive";
@@ -115,12 +68,12 @@ export default function CompetitivePrograms() {
                 </div>
                 <div className="text-right">
                   <div
-                    className={`px-2 py-1 rounded text-sm font-semibold ${getGradeColor(program.averageGrade)}`}
+                    className={`px-2 py-1 rounded text-sm font-semibold ${getGradeColor(program.averageGrade || 0)}`}
                   >
                     {program.averageGrade}%
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {getCompetitivenessLabel(program.averageGrade)}
+                    {getCompetitivenessLabel(program.averageGrade || 0)}
                   </div>
                 </div>
               </div>

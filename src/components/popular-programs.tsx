@@ -9,52 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, TrendingUp } from "lucide-react";
-import processedData from "../../data/data_processed.json";
-
-interface AdmissionRecord {
-  Average: string;
-  school: string[];
-  Program: string;
-  Status: string;
-}
-
-interface ProgramPopularity {
-  name: string;
-  applicationCount: number;
-  acceptanceRate: number;
-}
+import { RankingItem } from "@/types/dashboard";
+import { useProcessedAdmissionData } from "@/utils/data";
+import { calculatePopularityRankings } from "@/utils/statistics";
 
 export default function PopularPrograms() {
-  const programStats = useMemo((): ProgramPopularity[] => {
-    const data = processedData.data as AdmissionRecord[];
+  const { allRecords } = useProcessedAdmissionData();
 
-    // Count applications and acceptances for each program
-    const programData: { [key: string]: { total: number; accepted: number } } =
-      {};
-
-    data.forEach((record) => {
-      const program = record.Program;
-      if (!programData[program]) {
-        programData[program] = { total: 0, accepted: 0 };
-      }
-      programData[program].total++;
-      if (record.Status === "Accepted") {
-        programData[program].accepted++;
-      }
-    });
-
-    // Calculate stats and sort by popularity (total applications)
-    const stats = Object.entries(programData)
-      .map(([name, counts]) => ({
-        name,
-        applicationCount: counts.total,
-        acceptanceRate: Math.round((counts.accepted / counts.total) * 100),
-      }))
-      .filter((stat) => stat.applicationCount >= 1) // Include all programs with at least 1 application
-      .sort((a, b) => b.applicationCount - a.applicationCount); // Sort by most applications
-
-    return stats;
-  }, []);
+  const programStats = useMemo((): RankingItem[] => {
+    return calculatePopularityRankings(allRecords, "program");
+  }, [allRecords]);
 
   const getPopularityLevel = (count: number): string => {
     if (count >= 500) return "Extremely Popular";
@@ -104,12 +68,12 @@ export default function PopularPrograms() {
                 </div>
                 <div className="text-right">
                   <div
-                    className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(program.applicationCount)}`}
+                    className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(program.applicationCount || 0)}`}
                   >
                     {program.applicationCount}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {getPopularityLevel(program.applicationCount)}
+                    {getPopularityLevel(program.applicationCount || 0)}
                   </div>
                 </div>
               </div>
