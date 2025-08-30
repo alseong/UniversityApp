@@ -14,6 +14,15 @@ import { FilterState } from "@/types/dashboard";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { createDataFilter } from "@/utils/filters";
 import { calculateGradeStats } from "@/utils/statistics";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function GradeStatistics() {
   const [filters, setFilters] = useState<FilterState>({
@@ -96,18 +105,110 @@ export default function GradeStatistics() {
     return calculateGradeStats(filteredData);
   }, [filteredData]);
 
+  // Create grade distribution data for the chart
+  const gradeDistribution = useMemo(() => {
+    const validRecords = filteredData.filter(
+      (record) => record.Average !== null
+    );
+
+    // Create grade ranges: 85-89, 90-94, 95-99, 100+
+    const ranges = [
+      {
+        range: "85-89",
+        min: 85,
+        max: 89,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "90-94",
+        min: 90,
+        max: 94,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "95-99",
+        min: 95,
+        max: 99,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "100+",
+        min: 100,
+        max: 999,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+    ];
+
+    validRecords.forEach((record) => {
+      const grade = record.Average!;
+      const status = record.Status.toLowerCase();
+
+      for (const range of ranges) {
+        if (grade >= range.min && grade <= range.max) {
+          if (status === "accepted") {
+            range.accepted++;
+          } else if (status === "waitlisted") {
+            range.waitlisted++;
+          } else if (status === "rejected") {
+            range.rejected++;
+          } else if (status === "deferred") {
+            range.deferred++;
+          }
+          break;
+        }
+      }
+    });
+
+    return ranges.map((range) => ({
+      range: range.range,
+      accepted: range.accepted,
+      waitlisted: range.waitlisted,
+      rejected: range.rejected,
+      deferred: range.deferred,
+      total:
+        range.accepted + range.waitlisted + range.rejected + range.deferred,
+    }));
+  }, [filteredData]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "accepted":
+        return "#10b981"; // green
+      case "waitlisted":
+        return "#f59e0b"; // amber
+      case "rejected":
+        return "#ef4444"; // red
+      case "deferred":
+        return "#8b5cf6"; // purple
+      default:
+        return "#6b7280"; // gray
+    }
+  };
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-green-600" />
           Grade Analysis
         </CardTitle>
         <CardDescription>
-          Average and median grades based on filters
+          Average and median grades with distribution by acceptance status
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -156,7 +257,7 @@ export default function GradeStatistics() {
         </div>
 
         {/* Statistics Display */}
-        <div className="grid grid-cols-2 gap-4 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-700">
               {gradeStats.average}%
@@ -169,11 +270,115 @@ export default function GradeStatistics() {
             </div>
             <div className="text-sm text-blue-600">Median Grade</div>
           </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-700">
+              {gradeStats.count}
+            </div>
+            <div className="text-sm text-purple-600">Total Records</div>
+          </div>
         </div>
 
-        <div className="text-center text-sm text-gray-500 pt-2">
-          Based on {gradeStats.count} records
-        </div>
+        {/* Grade Distribution Chart */}
+        {gradeStats.count > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Grade Distribution by Status
+            </h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={gradeDistribution}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="range" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value, name) => [
+                      value,
+                      name === "accepted"
+                        ? "Accepted"
+                        : name === "waitlisted"
+                          ? "Waitlisted"
+                          : name === "rejected"
+                            ? "Rejected"
+                            : name === "deferred"
+                              ? "Deferred"
+                              : name,
+                    ]}
+                  />
+                  <Bar
+                    dataKey="accepted"
+                    stackId="a"
+                    fill={getStatusColor("accepted")}
+                    name="Accepted"
+                  />
+                  <Bar
+                    dataKey="waitlisted"
+                    stackId="a"
+                    fill={getStatusColor("waitlisted")}
+                    name="Waitlisted"
+                  />
+                  <Bar
+                    dataKey="rejected"
+                    stackId="a"
+                    fill={getStatusColor("rejected")}
+                    name="Rejected"
+                  />
+                  <Bar
+                    dataKey="deferred"
+                    stackId="a"
+                    fill={getStatusColor("deferred")}
+                    name="Deferred"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 justify-center text-sm">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("accepted") }}
+                ></div>
+                <span>Accepted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("waitlisted") }}
+                ></div>
+                <span>Waitlisted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("rejected") }}
+                ></div>
+                <span>Rejected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("deferred") }}
+                ></div>
+                <span>Deferred</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {gradeStats.count === 0 && (
+          <div className="text-center p-8 text-gray-500">
+            No data available for these filters
+          </div>
+        )}
       </CardContent>
     </Card>
   );
