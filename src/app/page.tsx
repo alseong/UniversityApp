@@ -90,17 +90,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Help Build the Future of Admissions Transparency
-          </h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Share your admission data anonymously and help future students make
-            informed decisions. Every data point matters.
-          </p>
-          <CTAButton user={null} />
+      {/* Who Can Use Section */}
+      <section className="py-20 bg-blue-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Who Can Submit Data?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              We welcome submissions from various students to build a
+              comprehensive database.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              {
+                title: "Current High School Students",
+                description:
+                  "Students currently in Grade 11 or 12 who are applying to universities",
+                emoji: "🎓",
+              },
+              {
+                title: "Recent Graduates",
+                description:
+                  "Students who graduated within the last 2 years and have admission outcomes",
+                emoji: "📚",
+              },
+              {
+                title: "Current University Students",
+                description:
+                  "First and second-year university students who remember their admission data",
+                emoji: "🏫",
+              },
+            ].map((group, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-lg shadow-sm text-center"
+              >
+                <div className="text-4xl mb-4">{group.emoji}</div>
+                <h3 className="font-semibold mb-2">{group.title}</h3>
+                <p className="text-gray-600 text-sm">{group.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Any current or former high school student who has applied to
+              university can contribute valuable data to help future applicants.
+              Your data is aggregated anonymously to create insights and
+              statistics for everyone's benefit.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -164,57 +204,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Who Can Use Section */}
-      <section className="py-20 bg-blue-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Who Can Submit Data?</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              We welcome submissions from various students to build a
-              comprehensive database.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              {
-                title: "Current High School Students",
-                description:
-                  "Students currently in Grade 11 or 12 who are applying to universities",
-                emoji: "🎓",
-              },
-              {
-                title: "Recent Graduates",
-                description:
-                  "Students who graduated within the last 2 years and have admission outcomes",
-                emoji: "📚",
-              },
-              {
-                title: "Current University Students",
-                description:
-                  "First and second-year university students who remember their admission data",
-                emoji: "🏫",
-              },
-            ].map((group, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-lg shadow-sm text-center"
-              >
-                <div className="text-4xl mb-4">{group.emoji}</div>
-                <h3 className="font-semibold mb-2">{group.title}</h3>
-                <p className="text-gray-600 text-sm">{group.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Any current or former high school student who has applied to
-              university can contribute valuable data to help future applicants.
-              Your data is aggregated anonymously to create insights and
-              statistics for everyone's benefit.
-            </p>
-          </div>
+      {/* CTA Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            Help Build the Future of Admissions Transparency
+          </h2>
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            Share your admission data anonymously and help future students make
+            informed decisions. Every data point matters.
+          </p>
+          <CTAButton user={null} />
         </div>
       </section>
 

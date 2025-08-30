@@ -25,6 +25,301 @@ import {
   calculateGradeStats,
 } from "@/utils/statistics";
 import { createDataFilter } from "@/utils/filters";
+import GradeStatistics from "@/components/grade-statistics";
+import CompetitivePrograms from "@/components/competitive-programs";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
+
+// Custom GradeStatistics component for landing page preview
+const GradeStatisticsPreview = () => {
+  const { allRecords, schools, programs, attendingYears } =
+    useProcessedAdmissionData();
+
+  // Pre-selected filters for University of Waterloo and Computer Science
+  const filters = {
+    school: "University of Waterloo",
+    program: "Computer Science",
+    status: "All",
+    attendingYear: "All",
+  };
+
+  // Filter the data based on the pre-selected filters
+  const filteredData = useMemo(() => {
+    return allRecords.filter(createDataFilter(filters));
+  }, [allRecords, filters]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    return calculateGradeStats(filteredData);
+  }, [filteredData]);
+
+  // Create grade distribution data for the chart
+  const gradeDistribution = useMemo(() => {
+    const validRecords = filteredData.filter(
+      (record) => record.Average !== null
+    );
+
+    if (validRecords.length === 0) {
+      return [];
+    }
+
+    // Get all unique grades from the filtered data
+    const grades = validRecords
+      .map((record) => record.Average!)
+      .sort((a, b) => a - b);
+    const minGrade = Math.floor(grades[0] / 5) * 5; // Round down to nearest 5
+    const maxGrade = Math.ceil(grades[grades.length - 1] / 5) * 5; // Round up to nearest 5
+
+    // Create dynamic grade ranges based on the actual data
+    const ranges: Array<{
+      range: string;
+      min: number;
+      max: number;
+      accepted: number;
+      waitlisted: number;
+      rejected: number;
+      deferred: number;
+    }> = [];
+
+    // Create ranges for each grade that exists in the data
+    for (let grade = minGrade; grade <= maxGrade; grade++) {
+      ranges.push({
+        range: grade >= 100 ? "100+" : grade.toString(),
+        min: grade >= 100 ? 100 : grade,
+        max: grade >= 100 ? 999 : grade,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      });
+    }
+
+    validRecords.forEach((record) => {
+      const grade = record.Average!;
+      const status = record.Status.toLowerCase();
+
+      for (const range of ranges) {
+        if (grade >= range.min && grade <= range.max) {
+          if (status === "accepted") {
+            range.accepted++;
+          } else if (status === "waitlisted") {
+            range.waitlisted++;
+          } else if (status === "rejected") {
+            range.rejected++;
+          } else if (status === "deferred") {
+            range.deferred++;
+          }
+          break;
+        }
+      }
+    });
+
+    // Only return ranges that have data
+    return ranges
+      .filter(
+        (range) =>
+          range.accepted + range.waitlisted + range.rejected + range.deferred >
+          0
+      )
+      .map((range) => ({
+        range: range.range,
+        accepted: range.accepted,
+        waitlisted: range.waitlisted,
+        rejected: range.rejected,
+        deferred: range.deferred,
+        total:
+          range.accepted + range.waitlisted + range.rejected + range.deferred,
+      }));
+  }, [filteredData]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "accepted":
+        return "#10b981";
+      case "waitlisted":
+        return "#f59e0b";
+      case "rejected":
+        return "#ef4444";
+      case "deferred":
+        return "#8b5cf6";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-green-600" />
+          Grade Analysis
+        </CardTitle>
+        <CardDescription>
+          Average and median grades with distribution graph
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Filter Display */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">School:</span>
+            <div className="text-gray-600">{filters.school}</div>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Program:</span>
+            <div className="text-gray-600">{filters.program}</div>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Status:</span>
+            <div className="text-gray-600">{filters.status}</div>
+          </div>
+          <div className="text-sm">
+            <span className="font-medium text-gray-700">Year:</span>
+            <div className="text-gray-600">{filters.attendingYear}</div>
+          </div>
+        </div>
+
+        {/* Statistics Display */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600 flex items-center justify-center gap-2">
+              -- <Lock className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-sm text-gray-600">Average Grade</div>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-2">
+              -- <Lock className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-sm text-gray-600">Median Grade</div>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600 flex items-center justify-center gap-2">
+              -- <Lock className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="text-sm text-gray-600">Total Records</div>
+          </div>
+        </div>
+
+        {/* Grade Distribution Chart */}
+        {gradeDistribution.length > 0 && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-gray-700">
+              Grade Distribution
+            </h4>
+            {/* Chart with overlay */}
+            <div className="h-64 relative">
+              {/* Blurred chart background */}
+              <div className="absolute inset-0 blur-sm bg-white bg-opacity-50 z-10"></div>
+
+              {/* Lock overlay content - positioned directly over the chart */}
+              <div className="absolute inset-0 z-20 flex items-center justify-center">
+                <div className="text-center bg-white rounded-lg p-6 shadow-lg">
+                  <Lock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-700 text-center font-medium mb-1">
+                    Sign up to see complete data
+                  </p>
+                  <p className="text-gray-500 text-center text-sm mb-4">
+                    Access full rankings, detailed analytics, grade statistics,
+                    and filtering capabilities
+                  </p>
+                  <Link href="/sign-up">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Sign Up for Full Access
+                      <ArrowUpRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={gradeDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="range"
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={() => "-"}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar
+                    dataKey="accepted"
+                    stackId="a"
+                    fill={getStatusColor("accepted")}
+                  />
+                  <Bar
+                    dataKey="waitlisted"
+                    stackId="a"
+                    fill={getStatusColor("waitlisted")}
+                  />
+                  <Bar
+                    dataKey="rejected"
+                    stackId="a"
+                    fill={getStatusColor("rejected")}
+                  />
+                  <Bar
+                    dataKey="deferred"
+                    stackId="a"
+                    fill={getStatusColor("deferred")}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 justify-center text-xs">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("accepted") }}
+                ></div>
+                <span>Accepted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("waitlisted") }}
+                ></div>
+                <span>Waitlisted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("rejected") }}
+                ></div>
+                <span>Rejected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("deferred") }}
+                ></div>
+                <span>Deferred</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function HeroWithPreview() {
   const [user, setUser] = useState<any>(null);
@@ -42,24 +337,6 @@ export default function HeroWithPreview() {
     };
     checkUser();
   }, []);
-
-  // Grade analysis with specific filters (Ryerson, Aerospace Engineering, All status)
-  const gradeAnalysisData = useMemo(() => {
-    const filters = {
-      school: "Ryerson University",
-      program: "Aerospace Engineering",
-      status: "All",
-    };
-
-    const filteredRecords = allRecords.filter(createDataFilter(filters));
-    const stats = calculateGradeStats(filteredRecords);
-
-    return {
-      stats,
-      recordCount: filteredRecords.length,
-      filters,
-    };
-  }, [allRecords]);
 
   const popularSchools = useMemo(() => {
     return calculatePopularityRankings(allRecords, "school").slice(0, 3);
@@ -158,183 +435,20 @@ export default function HeroWithPreview() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-            {/* Grade Analysis Preview */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  Grade Analysis
-                </CardTitle>
-                <CardDescription>
-                  Average and median grades based on filters
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Filter Display */}
-                <div className="space-y-2 mb-6 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-xs text-gray-600">
-                    <span className="font-medium">School:</span>{" "}
-                    {gradeAnalysisData.filters.school}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    <span className="font-medium">Program:</span>{" "}
-                    {gradeAnalysisData.filters.program}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    <span className="font-medium">Status:</span>{" "}
-                    {gradeAnalysisData.filters.status}
-                  </div>
-                </div>
+          {/* Grade Analysis Preview - Full Width */}
+          <div className="mb-6">
+            <GradeStatisticsPreview />
+          </div>
 
-                {/* Statistics Display */}
-                {gradeAnalysisData.stats.count > 0 ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {gradeAnalysisData.stats.average}%
-                      </div>
-                      <div className="text-sm text-gray-600">Average Grade</div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {gradeAnalysisData.stats.median}%
-                      </div>
-                      <div className="text-sm text-gray-600">Median Grade</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-4 text-gray-500">
-                    No data available for these filters
-                  </div>
-                )}
-
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  Based on {gradeAnalysisData.recordCount} records
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Most Popular Schools Preview */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-orange-600" />
-                  Most Popular Schools
-                </CardTitle>
-                <CardDescription>
-                  Top schools by application volume
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {popularSchools.map((school, index) => (
-                    <div
-                      key={school.name}
-                      className="flex items-center justify-between p-3 rounded-lg border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 font-semibold text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">
-                            {school.name}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div
-                          className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(school.applicationCount || 0)}`}
-                        >
-                          {school.applicationCount}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  +{" "}
-                  {calculatePopularityRankings(allRecords, "school").length - 3}{" "}
-                  more schools available
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Most Popular Programs Preview */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-indigo-600" />
-                  Most Popular Programs
-                </CardTitle>
-                <CardDescription>
-                  Top programs by application volume
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {popularPrograms.map((program, index) => (
-                    <div
-                      key={program.name}
-                      className="flex items-center justify-between p-3 rounded-lg border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">
-                            {program.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {program.acceptanceRate}% acceptance rate
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div
-                          className={`px-2 py-1 rounded text-sm font-semibold ${getCountColor(program.applicationCount || 0)}`}
-                        >
-                          {program.applicationCount}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  +{" "}
-                  {calculatePopularityRankings(allRecords, "program").length -
-                    3}{" "}
-                  more programs available
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Overlay for the preview effect */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-transparent to-transparent pointer-events-none" />
-
-            {/* Call to Action */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-6 rounded-b-lg">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Lock className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">
-                    Sign up to see complete data
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Access full rankings, detailed analytics, grade statistics,
-                  and filtering capabilities
-                </p>
-                <Link href="/sign-up">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Sign Up for Full Access
-                    <ArrowUpRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+          {/* And More Message */}
+          <div className="text-center py-8">
+            <p className="text-2xl font-bold text-gray-700 mb-2">
+              ... and more!
+            </p>
+            <p className="text-gray-600">
+              Sign up to access complete rankings, detailed analytics, grade
+              statistics, and advanced filtering capabilities.
+            </p>
           </div>
         </div>
       </div>

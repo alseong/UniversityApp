@@ -27,6 +27,7 @@ export default function DashboardPreview() {
       school: "Ryerson University",
       program: "Aerospace Engineering",
       status: "All",
+      attendingYear: "All",
     };
 
     const filteredRecords = allRecords.filter(createDataFilter(filters));
