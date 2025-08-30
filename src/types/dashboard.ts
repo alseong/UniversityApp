@@ -22,6 +22,7 @@ export interface FilterState {
   school: string;
   program: string;
   status: string;
+  attendingYear: string;
 }
 
 export interface GradeStats {
@@ -36,4 +37,5 @@ export interface ProcessedData {
   schools: string[];
   programs: string[];
   statuses: string[];
+  attendingYears: string[];
 } 

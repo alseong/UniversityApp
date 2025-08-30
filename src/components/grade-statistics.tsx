@@ -29,9 +29,10 @@ export default function GradeStatistics() {
     school: "All",
     program: "All",
     status: "All",
+    attendingYear: "All",
   });
 
-  const { allRecords, schools, programs, statuses } =
+  const { allRecords, schools, programs, statuses, attendingYears } =
     useProcessedAdmissionData();
 
   // Dynamically filter programs based on selected school
@@ -171,153 +172,40 @@ export default function GradeStatistics() {
       (record) => record.Average !== null
     );
 
-    // Create individual grade ranges: 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100+
-    const ranges = [
-      {
-        range: "85",
-        min: 85,
-        max: 85,
+    if (validRecords.length === 0) {
+      return [];
+    }
+
+    // Get all unique grades from the filtered data
+    const grades = validRecords
+      .map((record) => record.Average!)
+      .sort((a, b) => a - b);
+    const minGrade = Math.floor(grades[0] / 5) * 5; // Round down to nearest 5
+    const maxGrade = Math.ceil(grades[grades.length - 1] / 5) * 5; // Round up to nearest 5
+
+    // Create dynamic grade ranges based on the actual data
+    const ranges: Array<{
+      range: string;
+      min: number;
+      max: number;
+      accepted: number;
+      waitlisted: number;
+      rejected: number;
+      deferred: number;
+    }> = [];
+
+    // Create ranges for each grade that exists in the data
+    for (let grade = minGrade; grade <= maxGrade; grade++) {
+      ranges.push({
+        range: grade >= 100 ? "100+" : grade.toString(),
+        min: grade >= 100 ? 100 : grade,
+        max: grade >= 100 ? 999 : grade,
         accepted: 0,
         waitlisted: 0,
         rejected: 0,
         deferred: 0,
-      },
-      {
-        range: "86",
-        min: 86,
-        max: 86,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "87",
-        min: 87,
-        max: 87,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "88",
-        min: 88,
-        max: 88,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "89",
-        min: 89,
-        max: 89,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "90",
-        min: 90,
-        max: 90,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "91",
-        min: 91,
-        max: 91,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "92",
-        min: 92,
-        max: 92,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "93",
-        min: 93,
-        max: 93,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "94",
-        min: 94,
-        max: 94,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "95",
-        min: 95,
-        max: 95,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "96",
-        min: 96,
-        max: 96,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "97",
-        min: 97,
-        max: 97,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "98",
-        min: 98,
-        max: 98,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "99",
-        min: 99,
-        max: 99,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-      {
-        range: "100+",
-        min: 100,
-        max: 999,
-        accepted: 0,
-        waitlisted: 0,
-        rejected: 0,
-        deferred: 0,
-      },
-    ];
+      });
+    }
 
     validRecords.forEach((record) => {
       const grade = record.Average!;
@@ -339,15 +227,22 @@ export default function GradeStatistics() {
       }
     });
 
-    return ranges.map((range) => ({
-      range: range.range,
-      accepted: range.accepted,
-      waitlisted: range.waitlisted,
-      rejected: range.rejected,
-      deferred: range.deferred,
-      total:
-        range.accepted + range.waitlisted + range.rejected + range.deferred,
-    }));
+    // Only return ranges that have data
+    return ranges
+      .filter(
+        (range) =>
+          range.accepted + range.waitlisted + range.rejected + range.deferred >
+          0
+      )
+      .map((range) => ({
+        range: range.range,
+        accepted: range.accepted,
+        waitlisted: range.waitlisted,
+        rejected: range.rejected,
+        deferred: range.deferred,
+        total:
+          range.accepted + range.waitlisted + range.rejected + range.deferred,
+      }));
   }, [filteredData]);
 
   const getStatusColor = (status: string) => {
@@ -378,7 +273,7 @@ export default function GradeStatistics() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">School</label>
             <SearchableSelect
@@ -419,6 +314,24 @@ export default function GradeStatistics() {
               options={statuses.map((status) => ({
                 value: status,
                 label: status,
+              }))}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Attending Year
+            </label>
+            <SearchableSelect
+              value={filters.attendingYear}
+              onValueChange={(value) =>
+                setFilters((prev) => ({ ...prev, attendingYear: value }))
+              }
+              placeholder="Select year"
+              searchPlaceholder="Search years..."
+              options={attendingYears.map((year) => ({
+                value: year,
+                label: year,
               }))}
             />
           </div>

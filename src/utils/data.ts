@@ -13,6 +13,7 @@ export const useProcessedAdmissionData = (): ProcessedData => {
     const schoolsSet = new Set<string>();
     const programsSet = new Set<string>();
     const statusesSet = new Set<string>();
+    const attendingYearsSet = new Set<string>();
 
     // Count programs to filter by minimum records
     const programCounts: { [key: string]: number } = {};
@@ -30,6 +31,11 @@ export const useProcessedAdmissionData = (): ProcessedData => {
       if (record.Status) {
         statusesSet.add(record.Status);
       }
+
+      // Add attending year
+      if (record["Attending Year"]) {
+        attendingYearsSet.add(record["Attending Year"]);
+      }
     });
 
     // Filter programs to only include those with at least 3 records
@@ -42,6 +48,7 @@ export const useProcessedAdmissionData = (): ProcessedData => {
     const schools = ["All", ...Array.from(schoolsSet).sort()];
     const programs = ["All", ...programsWithEnoughData];
     const statuses = ["All", ...Array.from(statusesSet).sort()];
+    const attendingYears = ["All", ...Array.from(attendingYearsSet).sort()];
 
     return {
       allRecords,
@@ -49,6 +56,7 @@ export const useProcessedAdmissionData = (): ProcessedData => {
       schools,
       programs,
       statuses,
+      attendingYears,
     };
   }, []);
 }; 

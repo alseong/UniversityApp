@@ -29,6 +29,15 @@ export const createDataFilter = (filters: FilterState) => {
       return false;
     }
 
+    // Filter by attending year
+    if (
+      filters.attendingYear &&
+      filters.attendingYear !== "All" &&
+      record["Attending Year"] !== filters.attendingYear
+    ) {
+      return false;
+    }
+
     return true;
   };
 };
