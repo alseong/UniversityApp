@@ -50,7 +50,7 @@ export const calculateCompetitiveRankings = (
   });
 
   // Apply different minimum record requirements for programs vs schools
-  const minRecords = groupBy === 'program' ? 10 : 1;
+  const minRecords = groupBy === 'program' ? 3 : 1;
 
   return Object.entries(grouped)
     .map(([name, grades]) => ({
@@ -84,7 +84,7 @@ export const calculatePopularityRankings = (
   });
 
   // Apply different minimum record requirements for programs vs schools
-  const minRecords = groupBy === 'program' ? 10 : 1;
+  const minRecords = groupBy === 'program' ? 3 : 1;
 
   return Object.entries(grouped)
     .map(([name, counts]) => ({
