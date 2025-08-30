@@ -113,7 +113,7 @@ export default function Dashboard() {
                     </p>
                     <Link href="/submit-data">
                       <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                        Share Your Data
+                        Share Admissions Information
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </Link>
