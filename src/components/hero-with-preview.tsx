@@ -38,7 +38,7 @@ import {
 } from "recharts";
 
 // Custom GradeStatistics component for landing page preview
-const GradeStatisticsPreview = () => {
+const GradeStatisticsPreview = ({ user }: { user: any }) => {
   const { allRecords, schools, programs, attendingYears } =
     useProcessedAdmissionData();
 
@@ -230,9 +230,9 @@ const GradeStatisticsPreview = () => {
                     Access full rankings, detailed analytics, grade statistics,
                     and filtering capabilities
                   </p>
-                  <Link href="/sign-up">
+                  <Link href={user ? "/dashboard" : "/sign-up"}>
                     <Button className="bg-blue-600 hover:bg-blue-700">
-                      Sign Up for Full Access
+                      {user ? "Go to Dashboard" : "Sign Up for Full Access"}
                       <ArrowUpRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>
@@ -437,7 +437,7 @@ export default function HeroWithPreview() {
 
           {/* Grade Analysis Preview - Full Width */}
           <div className="mb-6">
-            <GradeStatisticsPreview />
+            <GradeStatisticsPreview user={user} />
           </div>
 
           {/* And More Message */}
