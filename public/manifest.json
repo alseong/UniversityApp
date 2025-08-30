@@ -1,7 +1,7 @@
 {
   "name": "admitme - University Admissions Data",
   "short_name": "admitme",
-  "description": "The single source of truth for university admissions data. Real admission statistics from students across Canada.",
+  "description": "The single source of truth for university admissions data. Real admission statistics from students.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -11,7 +11,8 @@
     {
       "src": "/icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
       "src": "/favicon.ico",

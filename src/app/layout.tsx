@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | admitme",
   },
   description:
-    "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university and college admission requirements.",
+    "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university and college admission requirements.",
   keywords: [
     "ontario university admission grades",
     "canadian university admissions",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     url: "https://www.admit-me.com",
     title: "admitme | University Admissions Data & Statistics",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university admission requirements.",
+      "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university admission requirements.",
     siteName: "admitme",
     images: [
       {
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "admitme | University Admissions Data & Statistics",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students across Canada.",
+      "The single source of truth for university admissions data. Real admission statistics from students.",
     images: ["/og-image.png"],
     creator: "@admitme",
   },
@@ -88,8 +88,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/icon.svg",
   },
   manifest: "/manifest.json",
@@ -102,6 +105,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
+      </head>
       <Script src="https://api.tempolabs.ai/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
       <body className={inter.className}>
         <ThemeProvider
