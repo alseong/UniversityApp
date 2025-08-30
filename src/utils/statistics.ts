@@ -36,7 +36,7 @@ export const calculateCompetitiveRankings = (
   const grouped: { [key: string]: number[] } = {};
 
   records.forEach((record) => {
-    const keys = groupBy === 'school' ? record.school : record.program;
+    const keys = groupBy === 'school' ? record.School : record.Program;
     const grade = getValidAverage(record);
     
     if (grade !== null) {
@@ -70,7 +70,7 @@ export const calculatePopularityRankings = (
   const grouped: { [key: string]: { total: number; accepted: number } } = {};
 
   records.forEach((record) => {
-    const keys = groupBy === 'school' ? record.school : record.program;
+    const keys = groupBy === 'school' ? record.School : record.Program;
     
     keys.forEach((key) => {
       if (!grouped[key]) {

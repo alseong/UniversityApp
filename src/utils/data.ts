@@ -19,10 +19,10 @@ export const useProcessedAdmissionData = (): ProcessedData => {
     
     allRecords.forEach((record) => {
       // Add schools
-      record.school.forEach((school) => schoolsSet.add(school));
+      record.School.forEach((school) => schoolsSet.add(school));
       
       // Count programs
-      record.program.forEach((program) => {
+      record.Program.forEach((program) => {
         programCounts[program] = (programCounts[program] || 0) + 1;
       });
       

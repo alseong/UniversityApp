@@ -6,7 +6,7 @@ export const createDataFilter = (filters: FilterState) => {
     if (
       filters.school &&
       filters.school !== "All" &&
-      !record.school.includes(filters.school)
+      !record.School.includes(filters.school)
     ) {
       return false;
     }
@@ -15,7 +15,7 @@ export const createDataFilter = (filters: FilterState) => {
     if (
       filters.program &&
       filters.program !== "All" &&
-      !record.program.includes(filters.program)
+      !record.Program.includes(filters.program)
     ) {
       return false;
     }

@@ -36,8 +36,8 @@ export default function GradeStatistics() {
 
     allRecords.forEach((record) => {
       // Only consider records that include the selected school
-      if (record.school.includes(filters.school)) {
-        record.program.forEach((program) => {
+      if (record.School.includes(filters.school)) {
+        record.Program.forEach((program) => {
           programCounts[program] = (programCounts[program] || 0) + 1;
         });
       }
@@ -63,8 +63,8 @@ export default function GradeStatistics() {
 
     allRecords.forEach((record) => {
       // Only consider records that include the selected program
-      if (record.program.includes(filters.program)) {
-        record.school.forEach((school) => {
+      if (record.Program.includes(filters.program)) {
+        record.School.forEach((school) => {
           schoolCounts[school] = (schoolCounts[school] || 0) + 1;
         });
       }

@@ -5,14 +5,9 @@ export interface AdmissionRecord {
   "Type (101/105)": string;
   Discord: string;
   Other: string;
-  "Message ID": string;
-  Tags: string;
   "Attending Year": string;
-  school: string[];
-  school_original: string;
-  record_id: number;
-  program: string[];
-  program_original: string;
+  School: string[];
+  Program: string[];
 }
 
 export interface RankingItem {
