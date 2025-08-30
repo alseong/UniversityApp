@@ -5,12 +5,12 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "admitme",
-    alternateName: "admitme - Ontario University Admissions Data",
+    alternateName: "admitme - Canadian University Admission Data Platform",
     url: "https://www.admit-me.com",
     description:
-      "The single source of truth for Ontario and Canadian university admissions data. Real admission statistics from Ontario students.",
+      "The single source of truth for Canadian university admissions data. Real admission statistics from students across Canada.",
     keywords:
-      "ontario university admission grades, canadian university admissions, ontario college admission requirements",
+      "canadian university admission data, canada university admission statistics, canadian university admission requirements, student submitted university data canada",
     inLanguage: "en-CA",
     audience: {
       "@type": "EducationalAudience",
@@ -18,24 +18,24 @@ export default function StructuredData() {
     },
     about: {
       "@type": "Thing",
-      name: "Ontario University Admissions",
+      name: "Canadian University Admissions",
       description:
-        "University admission requirements and statistics for Ontario and Canadian universities",
+        "University admission requirements and statistics for universities across Canada",
     },
     mainEntity: {
       "@type": "Dataset",
-      name: "Ontario University Admissions Data",
+      name: "Canadian University Admissions Data",
       description:
-        "Anonymous university admission data from Ontario students including grades, application results, and university requirements",
+        "Anonymous university admission data from students across Canada including grades, application results, and university requirements",
       keywords: [
-        "ontario university admission grades",
-        "canadian university applications",
-        "ontario college requirements",
-        "canadian admission statistics",
+        "canadian university admission data",
+        "canada university admission statistics",
+        "canadian university admission requirements",
+        "student submitted university data canada",
       ],
       spatial: {
         "@type": "Place",
-        name: "Ontario, Canada",
+        name: "Canada",
       },
     },
     potentialAction: {

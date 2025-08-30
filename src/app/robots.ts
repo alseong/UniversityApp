@@ -7,6 +7,23 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
+        allow: [
+          '/',
+          '/blog/',
+          '/dashboard',
+          '/submit-data',
+        ],
+        disallow: [
+          '/dashboard/',
+          '/auth/',
+          '/api/',
+          '/_next/',
+          '/admin/',
+          '/legal/',
+        ],
+      },
+      {
+        userAgent: 'Googlebot',
         allow: '/',
         disallow: [
           '/dashboard/',
@@ -15,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
           '/_next/',
           '/admin/',
         ],
+        crawlDelay: 1,
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

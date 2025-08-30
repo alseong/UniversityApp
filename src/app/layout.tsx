@@ -12,8 +12,9 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "admitme | University Admissions Data & Statistics",
-    template: "%s | admitme",
+    default:
+      "admitme | Canadian University Admission Data & Statistics from Students",
+    template: "%s | admitme - Canadian University Admission Data",
   },
   description:
     "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university and college admission requirements.",
@@ -43,6 +44,26 @@ export const metadata: Metadata = {
     "university applications",
     "admission rates",
     "academic requirements",
+    // Additional Ontario-specific keywords
+    "ontario university admission data",
+    "ontario university admission statistics",
+    "ontario university admission requirements",
+    "ontario university admission transparency",
+    "ontario university admission insights",
+    "ontario university admission data from students",
+    "student submitted ontario university data",
+    "real ontario university admission statistics",
+    "ontario university admission requirements database",
+    "ontario university admission data platform",
+    "ontario university admission process",
+    "ontario university admission criteria",
+    "ontario university admission standards",
+    "ontario university admission benchmarks",
+    "what grades do i need for ontario universities",
+    "ontario university admission requirements by program",
+    "ontario university admission statistics 2024",
+    "student admission data ontario universities",
+    "real admission statistics ontario universities",
   ],
   authors: [{ name: "admitme" }],
   creator: "admitme",
@@ -53,12 +74,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "en_CA",
     url: "https://www.admit-me.com",
-    title: "admitme | University Admissions Data & Statistics",
+    title:
+      "admitme | Canadian University Admission Data & Statistics from Students",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university admission requirements.",
-    siteName: "admitme",
+      "Real Canadian university admission data submitted by students. Get transparency in admission requirements, grades, and statistics for universities across Canada.",
+    siteName: "admitme - Canadian University Admission Data",
     images: [
       {
         url: "/og-image.png",
@@ -70,9 +92,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "admitme | University Admissions Data & Statistics",
+    title:
+      "admitme | Canadian University Admission Data & Statistics from Students",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students across Canada.",
+      "Real Canadian university admission data submitted by students. Get transparency in admission requirements, grades, and statistics for universities across Canada.",
     images: ["/og-image.png"],
     creator: "@admitme",
   },
