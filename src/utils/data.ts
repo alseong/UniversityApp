@@ -32,9 +32,9 @@ export const useProcessedAdmissionData = (): ProcessedData => {
       }
     });
 
-    // Filter programs to only include those with at least 10 records
+    // Filter programs to only include those with at least 3 records
     const programsWithEnoughData = Object.entries(programCounts)
-      .filter(([_, count]) => count >= 10)
+      .filter(([_, count]) => count >= 3)
       .map(([program, _]) => program)
       .sort();
 

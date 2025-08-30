@@ -37,6 +37,7 @@ export default function GradeStatistics() {
   // Dynamically filter programs based on selected school
   const availablePrograms = useMemo(() => {
     if (filters.school === "All") {
+      // When "All schools" is selected, show programs with at least 3 records
       return programs;
     }
 
@@ -52,18 +53,29 @@ export default function GradeStatistics() {
       }
     });
 
-    // Filter programs to only include those with at least 3 records for this school
+    // Show all programs that exist for this school (no threshold for school-specific)
     const filteredPrograms = Object.entries(programCounts)
-      .filter(([_, count]) => count >= 3)
       .map(([program, _]) => program)
       .sort();
 
     return ["All", ...filteredPrograms];
   }, [allRecords, filters.school, programs]);
 
+  // Validate current program selection against available programs
+  const validatedProgram = useMemo(() => {
+    if (
+      filters.program === "All" ||
+      availablePrograms.includes(filters.program)
+    ) {
+      return filters.program;
+    }
+    return "All";
+  }, [filters.program, availablePrograms]);
+
   // Dynamically filter schools based on selected program
   const availableSchools = useMemo(() => {
     if (filters.program === "All") {
+      // When "All programs" is selected, show all schools
       return schools;
     }
 
@@ -79,27 +91,75 @@ export default function GradeStatistics() {
       }
     });
 
-    // Filter schools to only include those with at least 3 records for this program
+    // Show all schools that have this program (no threshold for program-specific)
     const filteredSchools = Object.entries(schoolCounts)
-      .filter(([_, count]) => count >= 3)
       .map(([school, _]) => school)
       .sort();
 
     return ["All", ...filteredSchools];
   }, [allRecords, filters.program, schools]);
 
+  // Validate current school selection against available schools
+  const validatedSchool = useMemo(() => {
+    if (filters.school === "All" || availableSchools.includes(filters.school)) {
+      return filters.school;
+    }
+    return "All";
+  }, [filters.school, availableSchools]);
+
   // Handler functions for filter changes
   const handleSchoolChange = (value: string) => {
-    setFilters((prev) => ({ ...prev, school: value }));
+    setFilters((prev) => {
+      const newFilters = { ...prev, school: value };
+
+      // If the current program is not available for the new school, reset it to "All"
+      if (value !== "All") {
+        const availableProgramsForSchool = allRecords
+          .filter((record) => record.School.includes(value))
+          .flatMap((record) => record.Program);
+
+        if (
+          !availableProgramsForSchool.includes(prev.program) &&
+          prev.program !== "All"
+        ) {
+          newFilters.program = "All";
+        }
+      }
+
+      return newFilters;
+    });
   };
 
   const handleProgramChange = (value: string) => {
-    setFilters((prev) => ({ ...prev, program: value }));
+    setFilters((prev) => {
+      const newFilters = { ...prev, program: value };
+
+      // If the current school is not available for the new program, reset it to "All"
+      if (value !== "All") {
+        const availableSchoolsForProgram = allRecords
+          .filter((record) => record.Program.includes(value))
+          .flatMap((record) => record.School);
+
+        if (
+          !availableSchoolsForProgram.includes(prev.school) &&
+          prev.school !== "All"
+        ) {
+          newFilters.school = "All";
+        }
+      }
+
+      return newFilters;
+    });
   };
 
   const filteredData = useMemo(() => {
-    return allRecords.filter(createDataFilter(filters));
-  }, [allRecords, filters]);
+    const validatedFilters = {
+      ...filters,
+      school: validatedSchool,
+      program: validatedProgram,
+    };
+    return allRecords.filter(createDataFilter(validatedFilters));
+  }, [allRecords, filters, validatedSchool, validatedProgram]);
 
   const gradeStats = useMemo(() => {
     return calculateGradeStats(filteredData);
@@ -111,11 +171,47 @@ export default function GradeStatistics() {
       (record) => record.Average !== null
     );
 
-    // Create grade ranges: 85-89, 90-94, 95-99, 100+
+    // Create individual grade ranges: 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100+
     const ranges = [
       {
-        range: "85-89",
+        range: "85",
         min: 85,
+        max: 85,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "86",
+        min: 86,
+        max: 86,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "87",
+        min: 87,
+        max: 87,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "88",
+        min: 88,
+        max: 88,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "89",
+        min: 89,
         max: 89,
         accepted: 0,
         waitlisted: 0,
@@ -123,8 +219,44 @@ export default function GradeStatistics() {
         deferred: 0,
       },
       {
-        range: "90-94",
+        range: "90",
         min: 90,
+        max: 90,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "91",
+        min: 91,
+        max: 91,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "92",
+        min: 92,
+        max: 92,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "93",
+        min: 93,
+        max: 93,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "94",
+        min: 94,
         max: 94,
         accepted: 0,
         waitlisted: 0,
@@ -132,8 +264,44 @@ export default function GradeStatistics() {
         deferred: 0,
       },
       {
-        range: "95-99",
+        range: "95",
         min: 95,
+        max: 95,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "96",
+        min: 96,
+        max: 96,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "97",
+        min: 97,
+        max: 97,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "98",
+        min: 98,
+        max: 98,
+        accepted: 0,
+        waitlisted: 0,
+        rejected: 0,
+        deferred: 0,
+      },
+      {
+        range: "99",
+        min: 99,
         max: 99,
         accepted: 0,
         waitlisted: 0,
@@ -214,7 +382,7 @@ export default function GradeStatistics() {
           <div>
             <label className="text-sm font-medium mb-2 block">School</label>
             <SearchableSelect
-              value={filters.school}
+              value={validatedSchool}
               onValueChange={handleSchoolChange}
               placeholder="Select school"
               searchPlaceholder="Search schools..."
@@ -228,7 +396,7 @@ export default function GradeStatistics() {
           <div>
             <label className="text-sm font-medium mb-2 block">Program</label>
             <SearchableSelect
-              value={filters.program}
+              value={validatedProgram}
               onValueChange={handleProgramChange}
               placeholder="Select program"
               searchPlaceholder="Search programs..."
