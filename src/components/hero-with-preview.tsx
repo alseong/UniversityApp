@@ -92,9 +92,7 @@ export default function HeroWithPreview() {
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Real admission statistics from students. Get transparency in
-              university admissions requirements and make informed decisions
-              about your academic future.
+              Real admission statistics from students across Canada.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | admitme",
   },
   description:
-    "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university and college admission requirements.",
+    "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university and college admission requirements.",
   keywords: [
     "ontario university admission grades",
     "canadian university admissions",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     url: "https://www.admit-me.com",
     title: "admitme | University Admissions Data & Statistics",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students to provide transparency in university admission requirements.",
+      "The single source of truth for university admissions data. Real admission statistics from students across Canada to provide transparency in university admission requirements.",
     siteName: "admitme",
     images: [
       {
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "admitme | University Admissions Data & Statistics",
     description:
-      "The single source of truth for university admissions data. Real admission statistics from students.",
+      "The single source of truth for university admissions data. Real admission statistics from students across Canada.",
     images: ["/og-image.png"],
     creator: "@admitme",
   },
