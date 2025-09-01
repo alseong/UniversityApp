@@ -179,6 +179,29 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     setHasUnsavedChanges(true);
   };
 
+  const addProgramToUniversity = (index: number) => {
+    const university = universities[index];
+    if (!university.name) {
+      toast({
+        title: "University name required",
+        description:
+          "Please enter a university name first before adding programs.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add a new entry with the same university name
+    const newUniversity = {
+      name: university.name,
+      program: "",
+      status: "",
+    };
+
+    setUniversities([...universities, newUniversity]);
+    setHasUnsavedChanges(true);
+  };
+
   const removeUniversity = (index: number) => {
     setUniversities(universities.filter((_, i) => i !== index));
     setHasUnsavedChanges(true);
@@ -598,84 +621,167 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {universities.map((university, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg"
-                  >
-                    <div>
-                      <Label htmlFor={`university-${index}`}>
-                        University Name
-                      </Label>
-                      <AutocompleteInput
-                        id={`university-${index}`}
-                        placeholder="e.g., University of Toronto"
-                        value={university.name}
-                        onChange={(value) =>
-                          updateUniversity(index, "name", value)
+                {(() => {
+                  // Group universities by name
+                  const groupedUniversities = universities.reduce(
+                    (groups, university, index) => {
+                      if (!university.name) {
+                        // Universities without names get their own group
+                        groups.push([{ ...university, index }]);
+                      } else {
+                        const existingGroup = groups.find(
+                          (group) => group[0].name === university.name
+                        );
+                        if (existingGroup) {
+                          existingGroup.push({ ...university, index });
+                        } else {
+                          groups.push([{ ...university, index }]);
                         }
-                        options={universityOptions}
-                        emptyMessage="No universities found. You can type your own university name."
-                      />
+                      }
+                      return groups;
+                    },
+                    [] as Array<Array<University & { index: number }>>
+                  );
+
+                  return groupedUniversities.map((group, groupIndex) => (
+                    <div key={groupIndex} className="space-y-3">
+                      {group.map((university, groupItemIndex) => {
+                        const isFirstInGroup = groupItemIndex === 0;
+                        const isPartOfGroup = group.length > 1;
+
+                        return (
+                          <div
+                            key={university.index}
+                            className={`grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg ${
+                              isPartOfGroup && !isFirstInGroup
+                                ? "ml-6 border-l-4 border-l-blue-200 bg-blue-50/30"
+                                : ""
+                            }`}
+                          >
+                            {isFirstInGroup ? (
+                              <div>
+                                <Label
+                                  htmlFor={`university-${university.index}`}
+                                >
+                                  University Name
+                                </Label>
+                                <AutocompleteInput
+                                  id={`university-${university.index}`}
+                                  placeholder="e.g., University of Toronto"
+                                  value={university.name}
+                                  onChange={(value) =>
+                                    updateUniversity(
+                                      university.index,
+                                      "name",
+                                      value
+                                    )
+                                  }
+                                  options={universityOptions}
+                                  emptyMessage="No universities found. You can type your own university name."
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex items-center">
+                                <div className="text-sm text-gray-500 font-medium">
+                                  {university.name}
+                                </div>
+                              </div>
+                            )}
+                            <div>
+                              <Label htmlFor={`program-${university.index}`}>
+                                Program
+                              </Label>
+                              <AutocompleteInput
+                                id={`program-${university.index}`}
+                                placeholder="e.g., Computer Science, Engineering"
+                                value={university.program}
+                                onChange={(value) =>
+                                  updateUniversity(
+                                    university.index,
+                                    "program",
+                                    value
+                                  )
+                                }
+                                options={programOptions}
+                                emptyMessage="No programs found. You can type your own program name."
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`status-${university.index}`}>
+                                Application Status
+                              </Label>
+                              <Select
+                                value={university.status}
+                                onValueChange={(value) =>
+                                  updateUniversity(
+                                    university.index,
+                                    "status",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="received_offer_and_accepted">
+                                    Received Offer and Accepted
+                                  </SelectItem>
+                                  <SelectItem value="received_offer_and_rejected">
+                                    Received Offer and Rejected
+                                  </SelectItem>
+                                  <SelectItem value="accepted">
+                                    Accepted
+                                  </SelectItem>
+                                  <SelectItem value="waitlisted">
+                                    Waitlisted
+                                  </SelectItem>
+                                  <SelectItem value="rejected">
+                                    Rejected
+                                  </SelectItem>
+                                  <SelectItem value="applied">
+                                    Applied
+                                  </SelectItem>
+                                  <SelectItem value="planning_on_applying">
+                                    Planning on applying
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex items-end gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  addProgramToUniversity(university.index)
+                                }
+                                disabled={!university.name}
+                                className="text-blue-600 hover:text-blue-700"
+                                title="Add another program to this university"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </Button>
+                              {universities.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    removeUniversity(university.index)
+                                  }
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div>
-                      <Label htmlFor={`program-${index}`}>Program</Label>
-                      <AutocompleteInput
-                        id={`program-${index}`}
-                        placeholder="e.g., Computer Science, Engineering"
-                        value={university.program}
-                        onChange={(value) =>
-                          updateUniversity(index, "program", value)
-                        }
-                        options={programOptions}
-                        emptyMessage="No programs found. You can type your own program name."
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`status-${index}`}>
-                        Application Status
-                      </Label>
-                      <Select
-                        value={university.status}
-                        onValueChange={(value) =>
-                          updateUniversity(index, "status", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="received_offer_and_accepted">
-                            Received Offer and Accepted
-                          </SelectItem>
-                          <SelectItem value="received_offer_and_rejected">
-                            Received Offer and Rejected
-                          </SelectItem>
-                          <SelectItem value="accepted">Accepted</SelectItem>
-                          <SelectItem value="waitlisted">Waitlisted</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                          <SelectItem value="applied">Applied</SelectItem>
-                          <SelectItem value="planning_on_applying">
-                            Planning on applying
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-end">
-                      {universities.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeUniversity(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ));
+                })()}
                 <Button
                   type="button"
                   variant="outline"
