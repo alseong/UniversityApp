@@ -32,8 +32,32 @@ export default function GradeStatistics() {
     attendingYear: "All",
   });
 
-  const { allRecords, schools, programs, statuses, attendingYears } =
-    useProcessedAdmissionData();
+  const {
+    allRecords,
+    schools,
+    programs,
+    statuses,
+    attendingYears,
+    schoolCounts,
+    programCounts,
+  } = useProcessedAdmissionData();
+
+  // Create display options with counts
+  const schoolsWithCounts = useMemo(() => {
+    return schools.map((school) => {
+      if (school === "All") return { value: school, label: school };
+      const count = schoolCounts[school] || 0;
+      return { value: school, label: `${school} (${count})` };
+    });
+  }, [schools, schoolCounts]);
+
+  const programsWithCounts = useMemo(() => {
+    return programs.map((program) => {
+      if (program === "All") return { value: program, label: program };
+      const count = programCounts[program] || 0;
+      return { value: program, label: `${program} (${count})` };
+    });
+  }, [programs, programCounts]);
 
   // Dynamically filter programs based on selected school
   const availablePrograms = useMemo(() => {
@@ -281,10 +305,7 @@ export default function GradeStatistics() {
               onValueChange={handleSchoolChange}
               placeholder="Select school"
               searchPlaceholder="Search schools..."
-              options={availableSchools.map((school) => ({
-                value: school,
-                label: school,
-              }))}
+              options={schoolsWithCounts}
             />
           </div>
 
@@ -295,10 +316,7 @@ export default function GradeStatistics() {
               onValueChange={handleProgramChange}
               placeholder="Select program"
               searchPlaceholder="Search programs..."
-              options={availablePrograms.map((program) => ({
-                value: program,
-                label: program,
-              }))}
+              options={programsWithCounts}
             />
           </div>
 

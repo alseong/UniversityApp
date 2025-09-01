@@ -38,4 +38,6 @@ export interface ProcessedData {
   programs: string[];
   statuses: string[];
   attendingYears: string[];
+  schoolCounts: { [key: string]: number };
+  programCounts: { [key: string]: number };
 } 
