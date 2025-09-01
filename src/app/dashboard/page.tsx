@@ -70,7 +70,8 @@ export default function Dashboard() {
           <header className="mb-8">
             <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
             <p className="text-gray-600">
-              Welcome back! Here's an overview of admission data and insights.
+              Welcome back! Here's an overview of admission data and insights
+              from students across Canada.
             </p>
           </header>
 
