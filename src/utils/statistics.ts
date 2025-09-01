@@ -49,8 +49,8 @@ export const calculateCompetitiveRankings = (
     }
   });
 
-  // Apply different minimum record requirements for programs vs schools
-  const minRecords = groupBy === 'program' ? 3 : 1;
+  // Apply same minimum record requirements as dropdowns: 2+ for schools, 4+ for programs
+  const minRecords = groupBy === 'program' ? 4 : 2;
 
   return Object.entries(grouped)
     .map(([name, grades]) => ({
@@ -60,6 +60,13 @@ export const calculateCompetitiveRankings = (
       acceptanceRate: 0, // Not applicable for competitive rankings
     }))
     .filter(item => item.recordCount >= minRecords)
+    .filter(item => {
+      // Exclude specific programs like in dropdowns
+      if (groupBy === 'program') {
+        return item.name !== "Shopify Programs" && item.name !== "Toronto (St. George)";
+      }
+      return true;
+    })
     .sort((a, b) => (b.averageGrade || 0) - (a.averageGrade || 0));
 };
 
@@ -83,8 +90,8 @@ export const calculatePopularityRankings = (
     });
   });
 
-  // Apply different minimum record requirements for programs vs schools
-  const minRecords = groupBy === 'program' ? 3 : 1;
+  // Apply same minimum record requirements as dropdowns: 2+ for schools, 4+ for programs
+  const minRecords = groupBy === 'program' ? 4 : 2;
 
   return Object.entries(grouped)
     .map(([name, counts]) => ({
@@ -94,5 +101,12 @@ export const calculatePopularityRankings = (
       acceptanceRate: Math.round((counts.accepted / counts.total) * 100),
     }))
     .filter(item => item.recordCount >= minRecords)
+    .filter(item => {
+      // Exclude specific programs like in dropdowns
+      if (groupBy === 'program') {
+        return item.name !== "Shopify Programs" && item.name !== "Toronto (St. George)";
+      }
+      return true;
+    })
     .sort((a, b) => (b.applicationCount || 0) - (a.applicationCount || 0));
 }; 
