@@ -83,6 +83,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [universityOptions, setUniversityOptions] = useState<string[]>([]);
   const [programOptions, setProgramOptions] = useState<string[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [showGradeLevelSelector, setShowGradeLevelSelector] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -219,18 +220,32 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   };
 
   const addGrade = () => {
-    setGrades([
-      ...grades,
-      {
-        level: "grade_11",
-        courseName: "",
-        courseCode: "",
-        grade: "",
-        type: "u",
-        ibApMark: undefined,
-        otherSpecialization: "",
-      },
-    ]);
+    const newGrade = {
+      level: "", // Start with empty level - no grouping until user selects
+      courseName: "",
+      courseCode: "",
+      grade: "",
+      type: "u",
+      ibApMark: undefined,
+      otherSpecialization: "",
+    };
+
+    setGrades([...grades, newGrade]);
+    setHasUnsavedChanges(true);
+  };
+
+  const addGradeToGroup = (level: string) => {
+    const newGrade = {
+      level: level as "grade_11" | "grade_12",
+      courseName: "",
+      courseCode: "",
+      grade: "",
+      type: "u",
+      ibApMark: undefined,
+      otherSpecialization: "",
+    };
+
+    setGrades([...grades, newGrade]);
     setHasUnsavedChanges(true);
   };
 
@@ -802,7 +817,8 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               <CardHeader>
                 <CardTitle>Academic Grades</CardTitle>
                 <CardDescription>
-                  Enter your Grade 11 and Grade 12 grades
+                  Enter your Grade 11 and Grade 12 grades (non-final grades are
+                  okay)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -876,178 +892,287 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                 ) : (
                   // Detailed grade entry
                   <div className="space-y-4">
-                    {grades.map((grade, index) => (
-                      <div
-                        key={index}
-                        className="grid grid-cols-1 lg:grid-cols-8 gap-4 p-4 border rounded-lg"
-                      >
-                        <div className="space-y-2">
-                          <Label htmlFor={`grade-level-${index}`}>
-                            Grade Level
-                          </Label>
-                          <Select
-                            value={grade.level}
-                            onValueChange={(value) =>
-                              updateGrade(index, "level", value)
+                    {(() => {
+                      // Group grades by level
+                      const groupedGrades = grades.reduce(
+                        (groups, grade, index) => {
+                          // Only group grades that have a level selected
+                          if (!grade.level || grade.level.trim() === "") {
+                            // Standalone grade - add to its own group
+                            groups.push([{ ...grade, index }]);
+                          } else {
+                            const existingGroup = groups.find(
+                              (group) => group[0].level === grade.level
+                            );
+                            if (existingGroup) {
+                              existingGroup.push({ ...grade, index });
+                            } else {
+                              groups.push([{ ...grade, index }]);
                             }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="grade_11">Grade 11</SelectItem>
-                              <SelectItem value="grade_12">Grade 12</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`course-name-${index}`}>
-                            Course Name
-                          </Label>
-                          <Input
-                            id={`course-name-${index}`}
-                            placeholder="e.g., Advanced Functions"
-                            value={grade.courseName}
-                            onChange={(e) =>
-                              updateGrade(index, "courseName", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`course-code-${index}`}>
-                            Course Code
-                          </Label>
-                          <Input
-                            id={`course-code-${index}`}
-                            placeholder="e.g., MHF4U"
-                            value={grade.courseCode}
-                            onChange={(e) =>
-                              updateGrade(index, "courseCode", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`grade-${index}`}>Grade</Label>
-                          <Input
-                            id={`grade-${index}`}
-                            placeholder="e.g., 95%"
-                            value={grade.grade}
-                            onChange={(e) =>
-                              updateGrade(index, "grade", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`type-${index}`}>Type</Label>
-                          <Select
-                            value={grade.type}
-                            onValueChange={(value) =>
-                              updateGrade(index, "type", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="u">U (University)</SelectItem>
-                              <SelectItem value="m">M (Mixed)</SelectItem>
-                              <SelectItem value="c">C (College)</SelectItem>
-                              <SelectItem value="e">E (Workplace)</SelectItem>
-                              <SelectItem value="o">O (Open)</SelectItem>
-                              <SelectItem value="ib">IB</SelectItem>
-                              <SelectItem value="ap">AP</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                          }
+                          return groups;
+                        },
+                        [] as Array<Array<Grade & { index: number }>>
+                      );
 
-                        {/* Conditional IB/AP Mark field */}
-                        {(grade.type === "ib" || grade.type === "ap") && (
-                          <div className="space-y-2">
-                            <Label htmlFor={`ib-ap-${index}`}>
-                              {grade.type === "ib" ? "IB Mark" : "AP Mark"}
-                            </Label>
-                            <Input
-                              id={`ib-ap-${index}`}
-                              type="number"
-                              min={1}
-                              max={grade.type === "ib" ? 7 : 5}
-                              placeholder={grade.type === "ib" ? "1-7" : "1-5"}
-                              value={grade.ibApMark || ""}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
+                      return groupedGrades.map((group, groupIndex) => (
+                        <div key={groupIndex} className="space-y-3">
+                          {group.map((grade, groupItemIndex) => {
+                            const isFirstInGroup = groupItemIndex === 0;
+                            const isPartOfGroup = group.length > 1;
 
-                                if (!e.target.value || e.target.value === "") {
-                                  updateGrade(index, "ibApMark", undefined);
-                                } else if (!isNaN(value)) {
-                                  updateGrade(index, "ibApMark", value);
-                                }
-                              }}
-                              className={
-                                grade.ibApMark &&
-                                (grade.ibApMark < 1 ||
-                                  grade.ibApMark >
-                                    (grade.type === "ib" ? 7 : 5))
-                                  ? "border-red-500 focus:border-red-500"
-                                  : ""
-                              }
-                            />
-                            {grade.ibApMark &&
-                              (grade.ibApMark < 1 ||
-                                grade.ibApMark >
-                                  (grade.type === "ib" ? 7 : 5)) && (
-                                <p className="text-sm text-red-600 mt-1">
-                                  {grade.type === "ib"
-                                    ? "IB marks must be between 1-7"
-                                    : "AP marks must be between 1-5"}
-                                </p>
-                              )}
-                          </div>
-                        )}
+                            return (
+                              <div
+                                key={grade.index}
+                                className={`grid grid-cols-1 lg:grid-cols-8 gap-4 p-4 border rounded-lg ${
+                                  isPartOfGroup && !isFirstInGroup
+                                    ? "ml-6 border-l-4 border-l-blue-200 bg-blue-50/30"
+                                    : ""
+                                }`}
+                              >
+                                {isFirstInGroup ? (
+                                  <div className="space-y-2">
+                                    <Label
+                                      htmlFor={`grade-level-${grade.index}`}
+                                    >
+                                      Grade Level
+                                    </Label>
+                                    <Select
+                                      value={grade.level}
+                                      onValueChange={(value) =>
+                                        updateGrade(grade.index, "level", value)
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select grade" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="grade_11">
+                                          Grade 11
+                                        </SelectItem>
+                                        <SelectItem value="grade_12">
+                                          Grade 12
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center">
+                                    <div className="text-sm text-gray-500 font-medium">
+                                      {grade.level === "grade_11"
+                                        ? "Grade 11"
+                                        : "Grade 12"}
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="space-y-2">
+                                  <Label htmlFor={`course-name-${grade.index}`}>
+                                    Course Name
+                                  </Label>
+                                  <Input
+                                    id={`course-name-${grade.index}`}
+                                    placeholder="e.g., Advanced Functions"
+                                    value={grade.courseName}
+                                    onChange={(e) =>
+                                      updateGrade(
+                                        grade.index,
+                                        "courseName",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`course-code-${grade.index}`}>
+                                    Course Code
+                                  </Label>
+                                  <Input
+                                    id={`course-code-${grade.index}`}
+                                    placeholder="e.g., MHF4U"
+                                    value={grade.courseCode}
+                                    onChange={(e) =>
+                                      updateGrade(
+                                        grade.index,
+                                        "courseCode",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`type-${grade.index}`}>
+                                    Type (ex. U, IB, AP)
+                                  </Label>
+                                  <Select
+                                    value={grade.type}
+                                    onValueChange={(value) =>
+                                      updateGrade(grade.index, "type", value)
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="u">
+                                        U (University)
+                                      </SelectItem>
+                                      <SelectItem value="m">
+                                        M (Mixed)
+                                      </SelectItem>
+                                      <SelectItem value="c">
+                                        C (College)
+                                      </SelectItem>
+                                      <SelectItem value="e">
+                                        E (Workplace)
+                                      </SelectItem>
+                                      <SelectItem value="o">
+                                        O (Open)
+                                      </SelectItem>
+                                      <SelectItem value="ib">IB</SelectItem>
+                                      <SelectItem value="ap">AP</SelectItem>
+                                      <SelectItem value="other">
+                                        Other
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`grade-${grade.index}`}>
+                                    Grade
+                                  </Label>
+                                  <Input
+                                    id={`grade-${grade.index}`}
+                                    placeholder="e.g., 95%"
+                                    value={grade.grade}
+                                    onChange={(e) =>
+                                      updateGrade(
+                                        grade.index,
+                                        "grade",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
 
-                        {/* Conditional Other type field */}
-                        {grade.type === "other" && (
-                          <div className="space-y-2">
-                            <Label htmlFor={`other-spec-${index}`}>
-                              Specify Other
-                            </Label>
-                            <Input
-                              id={`other-spec-${index}`}
-                              placeholder="e.g., Honors, Cambridge, etc."
-                              value={grade.otherSpecialization || ""}
-                              onChange={(e) =>
-                                updateGrade(
-                                  index,
-                                  "otherSpecialization",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                        )}
+                                {/* Conditional IB/AP Mark field */}
+                                {(grade.type === "ib" ||
+                                  grade.type === "ap") && (
+                                  <div className="space-y-2">
+                                    <Label htmlFor={`ib-ap-${grade.index}`}>
+                                      {grade.type === "ib"
+                                        ? "IB Mark"
+                                        : "AP Mark"}
+                                    </Label>
+                                    <Input
+                                      id={`ib-ap-${grade.index}`}
+                                      type="number"
+                                      min={1}
+                                      max={grade.type === "ib" ? 7 : 5}
+                                      placeholder={
+                                        grade.type === "ib" ? "1-7" : "1-5"
+                                      }
+                                      value={grade.ibApMark || ""}
+                                      onChange={(e) => {
+                                        const value = parseInt(e.target.value);
 
-                        {/* Spacer column for alignment when no conditional fields */}
-                        {(grade.type === "u" ||
-                          grade.type === "m" ||
-                          grade.type === "c" ||
-                          grade.type === "e" ||
-                          grade.type === "o") && <div></div>}
+                                        if (
+                                          !e.target.value ||
+                                          e.target.value === ""
+                                        ) {
+                                          updateGrade(
+                                            grade.index,
+                                            "ibApMark",
+                                            undefined
+                                          );
+                                        } else if (!isNaN(value)) {
+                                          updateGrade(
+                                            grade.index,
+                                            "ibApMark",
+                                            value
+                                          );
+                                        }
+                                      }}
+                                      className={
+                                        grade.ibApMark &&
+                                        (grade.ibApMark < 1 ||
+                                          grade.ibApMark >
+                                            (grade.type === "ib" ? 7 : 5))
+                                          ? "border-red-500 focus:border-red-500"
+                                          : ""
+                                      }
+                                    />
+                                    {grade.ibApMark &&
+                                      (grade.ibApMark < 1 ||
+                                        grade.ibApMark >
+                                          (grade.type === "ib" ? 7 : 5)) && (
+                                        <p className="text-sm text-red-600 mt-1">
+                                          {grade.type === "ib"
+                                            ? "IB marks must be between 1-7"
+                                            : "AP marks must be between 1-5"}
+                                        </p>
+                                      )}
+                                  </div>
+                                )}
 
-                        <div className="flex items-end">
-                          {grades.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeGrade(index)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
+                                {/* Conditional Other type field */}
+                                {grade.type === "other" && (
+                                  <div className="space-y-2">
+                                    <Label
+                                      htmlFor={`other-spec-${grade.index}`}
+                                    >
+                                      Specify Other
+                                    </Label>
+                                    <Input
+                                      id={`other-spec-${grade.index}`}
+                                      placeholder="e.g., Honors, Cambridge, etc."
+                                      value={grade.otherSpecialization || ""}
+                                      onChange={(e) =>
+                                        updateGrade(
+                                          grade.index,
+                                          "otherSpecialization",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Spacer column for alignment when no conditional fields */}
+                                {(grade.type === "u" ||
+                                  grade.type === "m" ||
+                                  grade.type === "c" ||
+                                  grade.type === "e" ||
+                                  grade.type === "o") && <div></div>}
+
+                                <div className="flex items-end gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addGradeToGroup(grade.level)}
+                                    className="text-blue-600 hover:text-blue-700"
+                                    title="Add another course to this grade level"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </Button>
+                                  {grades.length > 1 && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => removeGrade(grade.index)}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                     <Button
                       type="button"
                       variant="outline"
