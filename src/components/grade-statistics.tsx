@@ -200,73 +200,65 @@ export default function GradeStatistics() {
       return [];
     }
 
-    // Get all unique grades from the filtered data
-    const grades = validRecords
-      .map((record) => record.Average!)
-      .sort((a, b) => a - b);
-    const minGrade = Math.floor(grades[0] / 5) * 5; // Round down to nearest 5
-    const maxGrade = Math.ceil(grades[grades.length - 1] / 5) * 5; // Round up to nearest 5
+    // Get all unique grades from the filtered data, rounded to nearest whole number
+    const roundedGrades = validRecords.map((record) =>
+      Math.round(record.Average!)
+    );
+    const uniqueGrades = Array.from(new Set(roundedGrades)).sort(
+      (a, b) => a - b
+    );
 
-    // Create dynamic grade ranges based on the actual data
-    const ranges: Array<{
-      range: string;
-      min: number;
-      max: number;
-      accepted: number;
-      waitlisted: number;
-      rejected: number;
-      deferred: number;
-    }> = [];
+    // Create a grade distribution object
+    const gradeCounts: {
+      [grade: number]: {
+        accepted: number;
+        waitlisted: number;
+        rejected: number;
+        deferred: number;
+      };
+    } = {};
 
-    // Create ranges for each grade that exists in the data
-    for (let grade = minGrade; grade <= maxGrade; grade++) {
-      ranges.push({
-        range: grade >= 100 ? "100+" : grade.toString(),
-        min: grade >= 100 ? 100 : grade,
-        max: grade >= 100 ? 999 : grade,
+    // Initialize all grades with zero counts
+    uniqueGrades.forEach((grade) => {
+      gradeCounts[grade] = {
         accepted: 0,
         waitlisted: 0,
         rejected: 0,
         deferred: 0,
-      });
-    }
+      };
+    });
 
+    // Count records for each rounded grade
     validRecords.forEach((record) => {
-      const grade = record.Average!;
+      const roundedGrade = Math.round(record.Average!);
       const status = record.Status.toLowerCase();
 
-      for (const range of ranges) {
-        if (grade >= range.min && grade <= range.max) {
-          if (status === "accepted") {
-            range.accepted++;
-          } else if (status === "waitlisted") {
-            range.waitlisted++;
-          } else if (status === "rejected") {
-            range.rejected++;
-          } else if (status === "deferred") {
-            range.deferred++;
-          }
-          break;
+      if (gradeCounts[roundedGrade]) {
+        if (status === "accepted") {
+          gradeCounts[roundedGrade].accepted++;
+        } else if (status === "waitlisted") {
+          gradeCounts[roundedGrade].waitlisted++;
+        } else if (status === "rejected") {
+          gradeCounts[roundedGrade].rejected++;
+        } else if (status === "deferred") {
+          gradeCounts[roundedGrade].deferred++;
         }
       }
     });
 
-    // Only return ranges that have data
-    return ranges
-      .filter(
-        (range) =>
-          range.accepted + range.waitlisted + range.rejected + range.deferred >
-          0
-      )
-      .map((range) => ({
-        range: range.range,
-        accepted: range.accepted,
-        waitlisted: range.waitlisted,
-        rejected: range.rejected,
-        deferred: range.deferred,
-        total:
-          range.accepted + range.waitlisted + range.rejected + range.deferred,
-      }));
+    // Convert to array format for the chart
+    return uniqueGrades.map((grade) => ({
+      range: grade >= 100 ? "100+" : grade.toString(),
+      accepted: gradeCounts[grade].accepted,
+      waitlisted: gradeCounts[grade].waitlisted,
+      rejected: gradeCounts[grade].rejected,
+      deferred: gradeCounts[grade].deferred,
+      total:
+        gradeCounts[grade].accepted +
+        gradeCounts[grade].waitlisted +
+        gradeCounts[grade].rejected +
+        gradeCounts[grade].deferred,
+    }));
   }, [filteredData]);
 
   const getStatusColor = (status: string) => {
@@ -468,6 +460,43 @@ export default function GradeStatistics() {
                   style={{ backgroundColor: getStatusColor("deferred") }}
                 ></div>
                 <span>Deferred</span>
+              </div>
+            </div>
+
+            {/* Data Verification */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+              <div className="font-medium text-gray-700 mb-2">
+                Data Verification:
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-gray-600">Chart Total:</span>
+                  <span className="ml-2 font-medium">
+                    {gradeDistribution.reduce(
+                      (sum, range) => sum + range.total,
+                      0
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Valid Records:</span>
+                  <span className="ml-2 font-medium">
+                    {
+                      filteredData.filter((record) => record.Average !== null)
+                        .length
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Total Records:</span>
+                  <span className="ml-2 font-medium">
+                    {filteredData.length}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Grade Stats Count:</span>
+                  <span className="ml-2 font-medium">{gradeStats.count}</span>
+                </div>
               </div>
             </div>
           </div>
