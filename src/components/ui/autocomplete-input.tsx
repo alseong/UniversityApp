@@ -145,6 +145,11 @@ export function AutocompleteInput({
         >
           {filteredOptions.length > 0 ? (
             <div className="p-1">
+              {/* Custom value indication */}
+              <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-1">
+                💡 Can't find what you're looking for? Type your own value
+                above.
+              </div>
               {filteredOptions.map((option, index) => (
                 <div
                   key={option}
