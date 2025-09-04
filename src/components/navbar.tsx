@@ -150,13 +150,6 @@ export default function Navbar() {
                 Blog
               </Link>
               <Link
-                href="/2026-results"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2"
-              >
-                <span className="text-yellow-500">🎉</span>
-                2026 Live Insights
-              </Link>
-              <Link
                 href="/feedback"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
