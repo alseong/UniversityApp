@@ -365,7 +365,9 @@ export default function GradeStatistics() {
             <div className="text-2xl font-bold text-purple-700">
               {gradeStats.count}
             </div>
-            <div className="text-sm text-purple-600">Total Records</div>
+            <div className="text-sm text-purple-600">
+              Total Records (missing grades omitted from chart)
+            </div>
           </div>
         </div>
 
@@ -460,43 +462,6 @@ export default function GradeStatistics() {
                   style={{ backgroundColor: getStatusColor("deferred") }}
                 ></div>
                 <span>Deferred</span>
-              </div>
-            </div>
-
-            {/* Data Verification */}
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-              <div className="font-medium text-gray-700 mb-2">
-                Data Verification:
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-gray-600">Chart Total:</span>
-                  <span className="ml-2 font-medium">
-                    {gradeDistribution.reduce(
-                      (sum, range) => sum + range.total,
-                      0
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Valid Records:</span>
-                  <span className="ml-2 font-medium">
-                    {
-                      filteredData.filter((record) => record.Average !== null)
-                        .length
-                    }
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Total Records:</span>
-                  <span className="ml-2 font-medium">
-                    {filteredData.length}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Grade Stats Count:</span>
-                  <span className="ml-2 font-medium">{gradeStats.count}</span>
-                </div>
               </div>
             </div>
           </div>
