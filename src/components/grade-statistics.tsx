@@ -42,27 +42,10 @@ export default function GradeStatistics() {
     programCounts,
   } = useProcessedAdmissionData();
 
-  // Create display options with counts
-  const schoolsWithCounts = useMemo(() => {
-    return schools.map((school) => {
-      if (school === "All") return { value: school, label: school };
-      const count = schoolCounts[school] || 0;
-      return { value: school, label: `${school} (${count})` };
-    });
-  }, [schools, schoolCounts]);
-
-  const programsWithCounts = useMemo(() => {
-    return programs.map((program) => {
-      if (program === "All") return { value: program, label: program };
-      const count = programCounts[program] || 0;
-      return { value: program, label: `${program} (${count})` };
-    });
-  }, [programs, programCounts]);
-
   // Dynamically filter programs based on selected school
   const availablePrograms = useMemo(() => {
     if (filters.school === "All") {
-      // When "All schools" is selected, show programs with at least 3 records
+      // When "All schools" is selected, show programs with at least 4 records
       return programs;
     }
 
@@ -78,8 +61,9 @@ export default function GradeStatistics() {
       }
     });
 
-    // Show all programs that exist for this school (no threshold for school-specific)
+    // Apply same minimum threshold as global filtering: 4+ records for programs
     const filteredPrograms = Object.entries(programCounts)
+      .filter(([_, count]) => count >= 4)
       .map(([program, _]) => program)
       .sort();
 
@@ -100,7 +84,7 @@ export default function GradeStatistics() {
   // Dynamically filter schools based on selected program
   const availableSchools = useMemo(() => {
     if (filters.program === "All") {
-      // When "All programs" is selected, show all schools
+      // When "All programs" is selected, show schools with at least 2 records
       return schools;
     }
 
@@ -116,8 +100,9 @@ export default function GradeStatistics() {
       }
     });
 
-    // Show all schools that have this program (no threshold for program-specific)
+    // Apply same minimum threshold as global filtering: 2+ records for schools
     const filteredSchools = Object.entries(schoolCounts)
+      .filter(([_, count]) => count >= 2)
       .map(([school, _]) => school)
       .sort();
 
@@ -131,6 +116,24 @@ export default function GradeStatistics() {
     }
     return "All";
   }, [filters.school, availableSchools]);
+
+  // Create display options with counts for available schools
+  const availableSchoolsWithCounts = useMemo(() => {
+    return availableSchools.map((school) => {
+      if (school === "All") return { value: school, label: school };
+      const count = schoolCounts[school] || 0;
+      return { value: school, label: `${school} (${count})` };
+    });
+  }, [availableSchools, schoolCounts]);
+
+  // Create display options with counts for available programs
+  const availableProgramsWithCounts = useMemo(() => {
+    return availablePrograms.map((program) => {
+      if (program === "All") return { value: program, label: program };
+      const count = programCounts[program] || 0;
+      return { value: program, label: `${program} (${count})` };
+    });
+  }, [availablePrograms, programCounts]);
 
   // Handler functions for filter changes
   const handleSchoolChange = (value: string) => {
@@ -297,7 +300,7 @@ export default function GradeStatistics() {
               onValueChange={handleSchoolChange}
               placeholder="Select school"
               searchPlaceholder="Search schools..."
-              options={schoolsWithCounts}
+              options={availableSchoolsWithCounts}
             />
           </div>
 
@@ -308,7 +311,7 @@ export default function GradeStatistics() {
               onValueChange={handleProgramChange}
               placeholder="Select program"
               searchPlaceholder="Search programs..."
-              options={programsWithCounts}
+              options={availableProgramsWithCounts}
             />
           </div>
 
