@@ -12,7 +12,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BarChart3, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BarChart3,
+  Users,
+  TrendingUp,
+  AlertCircle,
+  GraduationCap,
+  BookOpen,
+  Award,
+  Filter,
+} from "lucide-react";
 
 // Force dynamic rendering to prevent caching issues
 export const dynamic = "force-dynamic";
@@ -138,6 +155,17 @@ export default function Insights2026() {
                   Real-time admission data and trends from students planning on
                   attending university in 2026
                 </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-green-600 font-medium">
+                      Live
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    • More data being processed
+                  </span>
+                </div>
               </div>
             </div>
           </header>
@@ -202,104 +230,389 @@ export default function Insights2026() {
               </CardContent>
             </Card>
           ) : (
-            /* Insights coming soon message */
-            <div className="max-w-4xl mx-auto space-y-8">
-              <Card>
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
-                    <TrendingUp className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <CardTitle className="text-2xl">
-                    Insights Are Coming In!
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Live admission insights and trends for students planning to
-                    attend university in 2026 are coming soon. Check back for
-                    real-time updates.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-4">
-                      <div className="mx-auto mb-2 p-2 bg-green-100 rounded-full w-fit">
-                        <Users className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div className="text-2xl font-bold text-green-600">
-                        Growing
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Student submissions
-                      </div>
-                    </div>
-                    <div className="text-center p-4">
-                      <div className="mx-auto mb-2 p-2 bg-blue-100 rounded-full w-fit">
-                        <BarChart3 className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        Soon
-                      </div>
-                      <div className="text-sm text-gray-600">Live insights</div>
-                    </div>
-                    <div className="text-center p-4">
-                      <div className="mx-auto mb-2 p-2 bg-purple-100 rounded-full w-fit">
-                        <TrendingUp className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div className="text-2xl font-bold text-purple-600">
-                        Real-time
-                      </div>
-                      <div className="text-sm text-gray-600">Data updates</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="font-semibold text-lg mb-3">
-                      What to Expect
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Programs students plan to apply to</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Application statuses and timelines</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Admission rates by program</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Grade distributions</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Program competitiveness trends</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>LIVE admission updates</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() => router.push("/submit-data")}
-                    variant="outline"
-                    className="px-6 py-2"
-                  >
-                    Update Your Data
-                  </Button>
-                </CardContent>
-              </Card>
+            /* Live 2026/2027 Insights */
+            <div className="max-w-6xl mx-auto space-y-6">
+              <AdmissionInsights />
             </div>
           )}
         </div>
       </main>
     </>
+  );
+}
+
+// Component to display admission insights
+function AdmissionInsights() {
+  const [insightsData, setInsightsData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchInsightsData();
+  }, []);
+
+  const fetchInsightsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch 2026/2027 data for authenticated users only
+      const { data, error: fetchError } = await supabase
+        .from("admissions_data")
+        .select("*")
+        .or(
+          "university_attendance.ilike.%2026%,university_attendance.ilike.%2027%"
+        )
+        .order("created_at", { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      setInsightsData(data || []);
+      setFilteredData(data || []);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch insights data"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter data based on selected university and program
+  useEffect(() => {
+    let filtered = insightsData;
+
+    if (selectedUniversity !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.name === selectedUniversity)
+      );
+    }
+
+    if (selectedProgram !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.program === selectedProgram)
+      );
+    }
+
+    setFilteredData(filtered);
+  }, [insightsData, selectedUniversity, selectedProgram]);
+
+  // Get unique universities and programs from the data
+  const getUniqueUniversities = () => {
+    const universities = new Set<string>();
+    insightsData.forEach((data) => {
+      data.universities?.forEach((uni: any) => {
+        if (uni.name && uni.name.trim() !== "") {
+          universities.add(uni.name);
+        }
+      });
+    });
+    return Array.from(universities).sort();
+  };
+
+  const getUniquePrograms = () => {
+    const programs = new Set<string>();
+    insightsData.forEach((data) => {
+      data.universities?.forEach((uni: any) => {
+        if (uni.program && uni.program.trim() !== "") {
+          programs.add(uni.program);
+        }
+      });
+    });
+    return Array.from(programs).sort();
+  };
+
+  const calculateAverageGrade = (grades: any[], level: string) => {
+    const levelGrades = grades.filter(
+      (grade) =>
+        grade.level === level && grade.grade !== null && grade.grade !== ""
+    );
+    if (levelGrades.length === 0) return null;
+
+    const sum = levelGrades.reduce(
+      (acc, grade) => acc + Number(grade.grade),
+      0
+    );
+    return Math.round((sum / levelGrades.length) * 10) / 10; // Round to 1 decimal
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "accepted":
+        return "default";
+      case "waitlisted":
+        return "secondary";
+      case "rejected":
+        return "destructive";
+      case "pending":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Loading insights...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <p className="text-red-600">Error loading insights: {error}</p>
+        <Button onClick={fetchInsightsData} className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  if (insightsData.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">
+          No 2026/2027 admission data available yet.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Be the first to share your admission data!
+        </p>
+      </div>
+    );
+  }
+
+  const uniqueUniversities = getUniqueUniversities();
+  const uniquePrograms = getUniquePrograms();
+
+  return (
+    <div className="space-y-6">
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg">Filters</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* University Filter */}
+            {uniqueUniversities.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  University
+                </label>
+                <Select
+                  value={selectedUniversity}
+                  onValueChange={setSelectedUniversity}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Universities" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Universities</SelectItem>
+                    {uniqueUniversities.map((university) => (
+                      <SelectItem key={university} value={university}>
+                        {university}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Program Filter */}
+            {uniquePrograms.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Program
+                </label>
+                <Select
+                  value={selectedProgram}
+                  onValueChange={setSelectedProgram}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Programs" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Programs</SelectItem>
+                    {uniquePrograms.map((program) => (
+                      <SelectItem key={program} value={program}>
+                        {program}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {filteredData.length === 0 ? (
+        <div className="text-center py-12">
+          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">
+            No students match the selected filters.
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Try adjusting your filter criteria.
+          </p>
+        </div>
+      ) : (
+        filteredData.map((data, index) => {
+          const avgGrade11 = data.avg_grade_11
+            ? Number(data.avg_grade_11)
+            : calculateAverageGrade(data.grades || [], "grade_11");
+          const avgGrade12 = data.avg_grade_12
+            ? Number(data.avg_grade_12)
+            : calculateAverageGrade(data.grades || [], "grade_12");
+
+          const grade11Courses = (data.grades || []).filter(
+            (grade: any) =>
+              grade.level === "grade_11" &&
+              grade.grade !== null &&
+              grade.grade !== ""
+          );
+          const grade12Courses = (data.grades || []).filter(
+            (grade: any) =>
+              grade.level === "grade_12" &&
+              grade.grade !== null &&
+              grade.grade !== ""
+          );
+
+          return (
+            <Card key={data.id || index} className="h-fit">
+              <CardHeader>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-blue-600" />
+                    <CardTitle className="text-lg">
+                      {data.university_attendance || "University Student"}
+                    </CardTitle>
+                  </div>
+                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    User: {data.user_id?.slice(-6) || "Unknown"}
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {/* Universities & Programs */}
+                {data.universities && data.universities.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookOpen className="h-4 w-4 text-green-600" />
+                      <h4 className="font-semibold text-sm">
+                        Universities & Programs
+                      </h4>
+                    </div>
+                    <div className="space-y-2">
+                      {data.universities.map((uni: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                        >
+                          <div>
+                            <p className="font-medium text-sm">{uni.name}</p>
+                            <p className="text-xs text-gray-600">
+                              {uni.program}
+                            </p>
+                          </div>
+                          <Badge variant={getStatusBadgeVariant(uni.status)}>
+                            {uni.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Average Grade 11 */}
+                {avgGrade11 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-purple-600" />
+                      <h4 className="font-semibold text-sm">
+                        Average Grade 11: {avgGrade11}%
+                      </h4>
+                    </div>
+                    {grade11Courses.length > 0 && (
+                      <div className="space-y-1">
+                        {grade11Courses.map((course: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between text-xs text-gray-600"
+                          >
+                            <span>
+                              {course.courseName} ({course.courseCode})
+                            </span>
+                            <span>{course.grade}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Average Grade 12 */}
+                {avgGrade12 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-orange-600" />
+                      <h4 className="font-semibold text-sm">
+                        Average Grade 12: {avgGrade12}%
+                      </h4>
+                    </div>
+                    {grade12Courses.length > 0 && (
+                      <div className="space-y-1">
+                        {grade12Courses.map((course: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between text-xs text-gray-600"
+                          >
+                            <span>
+                              {course.courseName} ({course.courseCode})
+                            </span>
+                            <span>{course.grade}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Other Achievements - Always show */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="h-4 w-4 text-yellow-600" />
+                    <h4 className="font-semibold text-sm">
+                      Other Achievements
+                    </h4>
+                  </div>
+                  <p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded">
+                    {data.other_achievements || "No achievements listed"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })
+      )}
+    </div>
   );
 }

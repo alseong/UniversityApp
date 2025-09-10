@@ -115,13 +115,15 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
-              <Link
-                href="/2026-results"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2"
-              >
-                <span className="text-yellow-500">🎉</span>
-                2026 Live Insights
-              </Link>
+              {user && (
+                <Link
+                  href="/2026-results"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2"
+                >
+                  <span className="text-yellow-500">🎉</span>
+                  2026 Live Insights
+                </Link>
+              )}
               <Link
                 href="/submit-data"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -149,6 +151,15 @@ export default function Navbar() {
               >
                 Blog
               </Link>
+              {user && (
+                <Link
+                  href="/2026-results"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2"
+                >
+                  <span className="text-yellow-500">🎉</span>
+                  2026 Live Insights
+                </Link>
+              )}
               <Link
                 href="/feedback"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -198,14 +209,16 @@ export default function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <Link
-                  href="/2026-results"
-                  onClick={closeMenu}
-                  className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2"
-                >
-                  <span className="text-yellow-500">🎉</span>
-                  2026 Live Insights
-                </Link>
+                {user && (
+                  <Link
+                    href="/2026-results"
+                    onClick={closeMenu}
+                    className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2"
+                  >
+                    <span className="text-yellow-500">🎉</span>
+                    2026 Live Insights
+                  </Link>
+                )}
                 <Link
                   href="/submit-data"
                   onClick={closeMenu}

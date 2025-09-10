@@ -5,12 +5,36 @@ import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 
 export default function DashboardNavbar() {
   const supabase = createClient();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -69,13 +93,15 @@ export default function DashboardNavbar() {
             >
               Dashboard
             </Link>
-            <Link
-              href="/2026-results"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex items-center gap-2"
-            >
-              <span className="text-yellow-500">🎉</span>
-              2026 Live Insights
-            </Link>
+            {user && (
+              <Link
+                href="/2026-results"
+                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex items-center gap-2"
+              >
+                <span className="text-yellow-500">🎉</span>
+                2026 Live Insights
+              </Link>
+            )}
             <Link
               href="/submit-data"
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
@@ -122,14 +148,16 @@ export default function DashboardNavbar() {
             >
               Dashboard
             </Link>
-            <Link
-              href="/2026-results"
-              onClick={closeMenu}
-              className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2"
-            >
-              <span className="text-yellow-500">🎉</span>
-              2026 Live Insights
-            </Link>
+            {user && (
+              <Link
+                href="/2026-results"
+                onClick={closeMenu}
+                className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2"
+              >
+                <span className="text-yellow-500">🎉</span>
+                2026 Live Insights
+              </Link>
+            )}
             <Link
               href="/submit-data"
               onClick={closeMenu}

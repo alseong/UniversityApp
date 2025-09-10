@@ -43,7 +43,7 @@ interface Grade {
   level: string;
   courseName: string;
   courseCode: string;
-  grade: string;
+  grade: number | null; // Only numbers now (null for empty)
   type: string;
   ibApMark?: number;
   otherSpecialization?: string;
@@ -64,15 +64,15 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       level: "grade_11",
       courseName: "",
       courseCode: "",
-      grade: "",
+      grade: null,
       type: "u",
       ibApMark: undefined,
       otherSpecialization: "",
     },
   ]);
   const [useSimpleGradeEntry, setUseSimpleGradeEntry] = useState(false);
-  const [avgGrade11, setAvgGrade11] = useState("");
-  const [avgGrade12, setAvgGrade12] = useState("");
+  const [avgGrade11, setAvgGrade11] = useState<number | null>(null);
+  const [avgGrade12, setAvgGrade12] = useState<number | null>(null);
   const [universityAttendance, setUniversityAttendance] = useState("");
   const [highSchool, setHighSchool] = useState("");
   const [otherAchievements, setOtherAchievements] = useState("");
@@ -137,19 +137,48 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
           admissionData.universities || [{ name: "", program: "", status: "" }]
         );
 
-        // Handle backward compatibility for grades: convert 'specialization' to 'type'
+        // Handle backward compatibility for grades: convert 'specialization' to 'type' and ensure grade is number
         const grades = admissionData.grades || [];
         const normalizedGrades = grades.map((grade: any) => ({
           ...grade,
           type: grade.type || grade.specialization || "u", // Use 'type' if exists, fallback to 'specialization', default to 'u'
           specialization: undefined, // Remove old field
+          grade:
+            grade.grade === "" || grade.grade === null
+              ? null
+              : Number(grade.grade), // Convert to number or null
         }));
 
         // Check if there's an average grade saved (simple entry mode)
         if (admissionData.avg_grade_11 || admissionData.avg_grade_12) {
           setUseSimpleGradeEntry(true);
-          setAvgGrade11(admissionData.avg_grade_11 || "");
-          setAvgGrade12(admissionData.avg_grade_12 || "");
+          // Convert avg_grade_11 with backward compatibility
+          const grade11 = admissionData.avg_grade_11;
+          if (grade11) {
+            if (typeof grade11 === "string" && grade11.includes("%")) {
+              setAvgGrade11(parseFloat(grade11.replace("%", "")) || null);
+            } else if (!isNaN(Number(grade11))) {
+              setAvgGrade11(Number(grade11));
+            } else {
+              setAvgGrade11(null);
+            }
+          } else {
+            setAvgGrade11(null);
+          }
+
+          // Convert avg_grade_12 with backward compatibility
+          const grade12 = admissionData.avg_grade_12;
+          if (grade12) {
+            if (typeof grade12 === "string" && grade12.includes("%")) {
+              setAvgGrade12(parseFloat(grade12.replace("%", "")) || null);
+            } else if (!isNaN(Number(grade12))) {
+              setAvgGrade12(Number(grade12));
+            } else {
+              setAvgGrade12(null);
+            }
+          } else {
+            setAvgGrade12(null);
+          }
         } else {
           setGrades(
             normalizedGrades.length > 0
@@ -224,7 +253,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       level: "", // Start with empty level - no grouping until user selects
       courseName: "",
       courseCode: "",
-      grade: "",
+      grade: null,
       type: "u",
       ibApMark: undefined,
       otherSpecialization: "",
@@ -239,7 +268,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       level: level as "grade_11" | "grade_12",
       courseName: "",
       courseCode: "",
-      grade: "",
+      grade: null,
       type: "u",
       ibApMark: undefined,
       otherSpecialization: "",
@@ -257,7 +286,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const updateGrade = (
     index: number,
     field: keyof Grade,
-    value: string | number | undefined
+    value: string | number | null | undefined
   ) => {
     const updated = [...grades];
     (updated[index] as any)[field] = value;
@@ -267,6 +296,17 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
 
   const validateGrades = () => {
     return grades.every((grade) => {
+      // Validate main grade field (0-100 or null)
+      if (
+        grade.grade !== null &&
+        (typeof grade.grade !== "number" ||
+          grade.grade < 0 ||
+          grade.grade > 100)
+      ) {
+        return false;
+      }
+
+      // Validate IB/AP marks if present
       if (!grade.ibApMark) return true; // Empty marks are valid
 
       if (grade.type === "ib") {
@@ -444,7 +484,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
       toast({
         title: "Validation Error",
         description:
-          "Please fix invalid grades before saving: IB marks must be 1-7, AP marks must be 1-5",
+          "Please fix invalid grades before saving: Grades must be 0-100, IB marks must be 1-7, AP marks must be 1-5",
         variant: "destructive",
       });
       return;
@@ -532,37 +572,11 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
     <>
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pb-32">
           {/* Header Section */}
           <header className="mb-8">
-            <div className="flex justify-between items-start mb-4">
+            <div className="mb-4">
               <h1 className="text-3xl font-bold">Your Admission Data</h1>
-
-              {/* Top Save Button */}
-              <div className="flex flex-col items-end space-y-1">
-                <Button
-                  onClick={() => handleSave()}
-                  disabled={!validateGrades() || isSaving}
-                  className={`px-6 py-2 ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-
-                {/* Status indicator */}
-                <div className="text-xs text-right">
-                  {isSaving && <p className="text-blue-600">Saving...</p>}
-                  {lastSaved && !isSaving && (
-                    <p className="text-gray-500">
-                      {hasUnsavedChanges
-                        ? "Unsaved changes"
-                        : `Last saved: ${lastSaved.toLocaleTimeString()}`}
-                    </p>
-                  )}
-                  {!validateGrades() && (
-                    <p className="text-red-600">Fix validation errors</p>
-                  )}
-                </div>
-              </div>
             </div>
           </header>
 
@@ -815,7 +829,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
             {/* Grades */}
             <Card>
               <CardHeader>
-                <CardTitle>Academic Grades</CardTitle>
+                <CardTitle>Academic Grades (so far)</CardTitle>
                 <CardDescription>
                   Enter your Grade 11 and Grade 12 grades (non-final grades are
                   okay)
@@ -852,9 +866,12 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                             min="0"
                             max="100"
                             placeholder="85"
-                            value={avgGrade11}
+                            value={avgGrade11 || ""}
                             onChange={(e) => {
-                              setAvgGrade11(e.target.value);
+                              const value = e.target.value;
+                              setAvgGrade11(
+                                value === "" ? null : Number(value)
+                              );
                               setHasUnsavedChanges(true);
                             }}
                             className="pr-8"
@@ -875,9 +892,12 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                             min="0"
                             max="100"
                             placeholder="87"
-                            value={avgGrade12}
+                            value={avgGrade12 || ""}
                             onChange={(e) => {
-                              setAvgGrade12(e.target.value);
+                              const value = e.target.value;
+                              setAvgGrade12(
+                                value === "" ? null : Number(value)
+                              );
                               setHasUnsavedChanges(true);
                             }}
                             className="pr-8"
@@ -1040,18 +1060,51 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                                   <Label htmlFor={`grade-${grade.index}`}>
                                     Grade
                                   </Label>
-                                  <Input
-                                    id={`grade-${grade.index}`}
-                                    placeholder="e.g., 95%"
-                                    value={grade.grade}
-                                    onChange={(e) =>
-                                      updateGrade(
-                                        grade.index,
-                                        "grade",
-                                        e.target.value
-                                      )
-                                    }
-                                  />
+                                  <div className="relative">
+                                    <Input
+                                      id={`grade-${grade.index}`}
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      placeholder="95"
+                                      value={grade.grade || ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty string or valid number
+                                        if (
+                                          value === "" ||
+                                          (!isNaN(Number(value)) &&
+                                            Number(value) >= 0 &&
+                                            Number(value) <= 100)
+                                        ) {
+                                          updateGrade(
+                                            grade.index,
+                                            "grade",
+                                            value === "" ? null : Number(value)
+                                          );
+                                        }
+                                      }}
+                                      className={`pr-8 ${
+                                        grade.grade !== null &&
+                                        (typeof grade.grade !== "number" ||
+                                          grade.grade < 0 ||
+                                          grade.grade > 100)
+                                          ? "border-red-500 focus:border-red-500"
+                                          : ""
+                                      }`}
+                                    />
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                      %
+                                    </span>
+                                  </div>
+                                  {grade.grade !== null &&
+                                    (typeof grade.grade !== "number" ||
+                                      grade.grade < 0 ||
+                                      grade.grade > 100) && (
+                                      <p className="text-sm text-red-600 mt-1">
+                                        Grade must be between 0-100
+                                      </p>
+                                    )}
                                 </div>
 
                                 {/* Conditional IB/AP Mark field */}
@@ -1221,30 +1274,36 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
               </CardContent>
             </Card>
 
-            {/* Save Button */}
-            <div className="flex flex-col items-center space-y-2">
-              <Button
-                onClick={() => handleSave()}
-                disabled={!validateGrades() || isSaving}
-                className={`px-8 py-3 text-lg ${!validateGrades() ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-              {!validateGrades() && (
-                <p className="text-sm text-red-600 text-center">
-                  Please fix the IB/AP mark validation errors before saving.
-                </p>
-              )}
-              {isSaving && (
-                <p className="text-sm text-blue-600 text-center">Saving...</p>
-              )}
-              {lastSaved && !isSaving && (
-                <p className="text-sm text-gray-600 text-center">
-                  {hasUnsavedChanges
-                    ? "Unsaved changes"
-                    : `Last saved: ${lastSaved.toLocaleString()}`}
-                </p>
-              )}
+            {/* Save Button - Sticky at bottom */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex flex-col items-center space-y-2">
+                  <Button
+                    onClick={() => handleSave()}
+                    disabled={isSaving}
+                    className="px-8 py-3 text-lg w-full max-w-md"
+                  >
+                    {isSaving ? "Saving..." : "Save"}
+                  </Button>
+                  {!validateGrades() && (
+                    <p className="text-sm text-red-600 text-center">
+                      Please fix the grade validation errors before saving.
+                      Grades must be 0-100, IB marks must be 1-7, AP marks must
+                      be 1-5.
+                    </p>
+                  )}
+                  {isSaving && (
+                    <p className="text-sm text-blue-600 text-center">
+                      Saving...
+                    </p>
+                  )}
+                  {hasUnsavedChanges && !isSaving && (
+                    <p className="text-sm text-gray-600 text-center">
+                      Unsaved changes
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <FormMessage message={searchParams} />

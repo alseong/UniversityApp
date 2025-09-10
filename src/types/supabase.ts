@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      admissions_data: {
+        Row: {
+          id: string
+          user_id: string
+          university_attendance: string | null
+          high_school: string | null
+          avg_grade_11: string | null
+          avg_grade_12: string | null
+          universities: Json
+          grades: Json
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          university_attendance?: string | null
+          high_school?: string | null
+          avg_grade_11?: string | null
+          avg_grade_12?: string | null
+          universities?: Json
+          grades?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          university_attendance?: string | null
+          high_school?: string | null
+          avg_grade_11?: string | null
+          avg_grade_12?: string | null
+          universities?: Json
+          grades?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      admissions_data_master: {
+        Row: {
+          master_id: string
+          original_record_id: string | null
+          user_id: string
+          university_attendance: string | null
+          high_school: string | null
+          avg_grade_11: string | null
+          avg_grade_12: string | null
+          universities: Json
+          grades: Json
+          version_number: number
+          operation_type: string
+          operation_timestamp: string | null
+          deleted_at: string | null
+          original_created_at: string | null
+          original_updated_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          master_id?: string
+          original_record_id?: string | null
+          user_id: string
+          university_attendance?: string | null
+          high_school?: string | null
+          avg_grade_11?: string | null
+          avg_grade_12?: string | null
+          universities?: Json
+          grades?: Json
+          version_number: number
+          operation_type: string
+          operation_timestamp?: string | null
+          deleted_at?: string | null
+          original_created_at?: string | null
+          original_updated_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          master_id?: string
+          original_record_id?: string | null
+          user_id?: string
+          university_attendance?: string | null
+          high_school?: string | null
+          avg_grade_11?: string | null
+          avg_grade_12?: string | null
+          universities?: Json
+          grades?: Json
+          version_number?: number
+          operation_type?: string
+          operation_timestamp?: string | null
+          deleted_at?: string | null
+          original_created_at?: string | null
+          original_updated_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       admission_submissions: {
         Row: {
           created_at: string | null
