@@ -153,7 +153,7 @@ export default function Insights2026() {
                 </h1>
                 <p className="text-gray-600">
                   Real-time admission data and trends from students planning on
-                  attending university in 2026
+                  attending university in 2026 onwards
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-1">
@@ -162,9 +162,6 @@ export default function Insights2026() {
                       Live
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    • More data being processed
-                  </span>
                 </div>
               </div>
             </div>
@@ -178,12 +175,12 @@ export default function Insights2026() {
                   <AlertCircle className="h-8 w-8 text-amber-600" />
                 </div>
                 <CardTitle className="text-2xl">
-                  Complete Your Profile to View Insights
+                  Complete Your Profile to View
                 </CardTitle>
                 <CardDescription className="text-lg">
-                  To see live 2026 admission insights and trends for students
-                  planning to attend university in 2026, you need to add your
-                  university applications and grades first.
+                  - Universities your peers are interested in applying
+                  <br />- Grades and achievements of your peers
+                  <br />- Real time updates as acceptance results come out
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-6">
@@ -221,12 +218,6 @@ export default function Insights2026() {
                 >
                   Complete Your Profile
                 </Button>
-
-                <p className="text-sm text-gray-500">
-                  Once you've added your information, you'll be able to see live
-                  insights and compare your profile with other students planning
-                  to attend university in 2026.
-                </p>
               </CardContent>
             </Card>
           ) : (
