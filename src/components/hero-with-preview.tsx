@@ -379,7 +379,7 @@ export default function HeroWithPreview() {
                     href={user ? "/submit-data" : "/sign-in"}
                     className="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
                   >
-                    Get Early Access
+                    Sign Up
                     <ArrowUpRight className="ml-2 w-5 h-5" />
                   </Link>
 
