@@ -762,6 +762,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                                   <SelectItem value="accepted">
                                     Accepted
                                   </SelectItem>
+                                  <SelectItem value="early_acceptance">
+                                    Early Acceptance
+                                  </SelectItem>
                                   <SelectItem value="waitlisted">
                                     Waitlisted
                                   </SelectItem>

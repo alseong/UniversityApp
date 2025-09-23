@@ -288,6 +288,28 @@ function AdmissionInsights() {
   useEffect(() => {
     let filtered = insightsData;
 
+    // First, filter out items where both universities/programs AND other achievements are empty
+    filtered = filtered.filter((data) => {
+      // Check if universities/programs have meaningful data
+      const hasUniversities =
+        data.universities &&
+        data.universities.length > 0 &&
+        data.universities.some(
+          (uni: any) =>
+            uni.name &&
+            uni.name.trim() !== "" &&
+            uni.program &&
+            uni.program.trim() !== ""
+        );
+
+      // Check if other achievements have meaningful data
+      const hasAchievements =
+        data.other_achievements && data.other_achievements.trim() !== "";
+
+      // Show item if it has either universities/programs OR achievements
+      return hasUniversities || hasAchievements;
+    });
+
     if (selectedUniversity !== "all") {
       filtered = filtered.filter((data) =>
         data.universities?.some((uni: any) => uni.name === selectedUniversity)
@@ -303,15 +325,31 @@ function AdmissionInsights() {
     setFilteredData(filtered);
   }, [insightsData, selectedUniversity, selectedProgram]);
 
-  // Get unique universities and programs from the data
+  // Get unique universities and programs from the data (only from items with meaningful content)
   const getUniqueUniversities = () => {
     const universities = new Set<string>();
     insightsData.forEach((data) => {
-      data.universities?.forEach((uni: any) => {
-        if (uni.name && uni.name.trim() !== "") {
-          universities.add(uni.name);
-        }
-      });
+      // Only consider items that have meaningful content
+      const hasUniversities =
+        data.universities &&
+        data.universities.length > 0 &&
+        data.universities.some(
+          (uni: any) =>
+            uni.name &&
+            uni.name.trim() !== "" &&
+            uni.program &&
+            uni.program.trim() !== ""
+        );
+      const hasAchievements =
+        data.other_achievements && data.other_achievements.trim() !== "";
+
+      if (hasUniversities || hasAchievements) {
+        data.universities?.forEach((uni: any) => {
+          if (uni.name && uni.name.trim() !== "") {
+            universities.add(uni.name);
+          }
+        });
+      }
     });
     return Array.from(universities).sort();
   };
@@ -319,11 +357,27 @@ function AdmissionInsights() {
   const getUniquePrograms = () => {
     const programs = new Set<string>();
     insightsData.forEach((data) => {
-      data.universities?.forEach((uni: any) => {
-        if (uni.program && uni.program.trim() !== "") {
-          programs.add(uni.program);
-        }
-      });
+      // Only consider items that have meaningful content
+      const hasUniversities =
+        data.universities &&
+        data.universities.length > 0 &&
+        data.universities.some(
+          (uni: any) =>
+            uni.name &&
+            uni.name.trim() !== "" &&
+            uni.program &&
+            uni.program.trim() !== ""
+        );
+      const hasAchievements =
+        data.other_achievements && data.other_achievements.trim() !== "";
+
+      if (hasUniversities || hasAchievements) {
+        data.universities?.forEach((uni: any) => {
+          if (uni.program && uni.program.trim() !== "") {
+            programs.add(uni.program);
+          }
+        });
+      }
     });
     return Array.from(programs).sort();
   };
