@@ -104,12 +104,6 @@ export default function Navbar() {
           {user ? (
             <>
               <Link
-                href="/blog"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Blog
-              </Link>
-              <Link
                 href="/dashboard"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
@@ -134,7 +128,7 @@ export default function Navbar() {
                 href="/feedback"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
-                Feedback
+                Contact Us
               </Link>
               <button
                 onClick={handleSignOut}
@@ -145,12 +139,6 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                href="/blog"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Blog
-              </Link>
               {user && (
                 <Link
                   href="/2026-results"
@@ -164,7 +152,7 @@ export default function Navbar() {
                 href="/feedback"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
-                Feedback
+                Contact Us
               </Link>
               <Link
                 href="/sign-in"
@@ -231,7 +219,7 @@ export default function Navbar() {
                   onClick={closeMenu}
                   className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
                 >
-                  Feedback
+                  Contact Us
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -247,7 +235,7 @@ export default function Navbar() {
                   onClick={closeMenu}
                   className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
                 >
-                  Feedback
+                  Contact Us
                 </Link>
                 <Link
                   href="/sign-in"

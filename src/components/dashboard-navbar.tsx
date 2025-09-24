@@ -112,7 +112,7 @@ export default function DashboardNavbar() {
               href="/feedback"
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
             >
-              Feedback
+              Contact Us
             </Link>
             <button
               onClick={handleSignOut}
@@ -170,7 +170,7 @@ export default function DashboardNavbar() {
               onClick={closeMenu}
               className="block w-full px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md"
             >
-              Feedback
+              Contact Us
             </Link>
             <button
               onClick={handleSignOut}

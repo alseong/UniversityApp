@@ -77,6 +77,14 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
+                <Link
+                  href="/blog"
+                  className="text-gray-600 hover:text-blue-600"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
                 <a
                   href="https://app.youform.com/forms/i14kuart"
                   className="text-gray-600 hover:text-blue-600"
