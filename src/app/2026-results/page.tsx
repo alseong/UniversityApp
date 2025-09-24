@@ -29,6 +29,8 @@ import {
   BookOpen,
   Award,
   Filter,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 // Force dynamic rendering to prevent caching issues
@@ -240,6 +242,9 @@ function AdmissionInsights() {
   const [error, setError] = useState<string | null>(null);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
+  const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(
+    new Set()
+  );
   const supabase = createClient();
 
   useEffect(() => {
@@ -400,6 +405,33 @@ function AdmissionInsights() {
       default:
         return "outline";
     }
+  };
+
+  // Helper function to check if text exceeds 5 lines
+  const exceedsFiveLines = (text: string) => {
+    if (!text) return false;
+    const lines = text.split("\n");
+    return lines.length > 5;
+  };
+
+  // Helper function to get truncated text (first 5 lines)
+  const getTruncatedText = (text: string) => {
+    if (!text) return "No achievements listed";
+    const lines = text.split("\n");
+    return lines.slice(0, 5).join("\n");
+  };
+
+  // Toggle expanded state for achievements
+  const toggleAchievements = (dataId: string) => {
+    setExpandedAchievements((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(dataId)) {
+        newSet.delete(dataId);
+      } else {
+        newSet.add(dataId);
+      }
+      return newSet;
+    });
   };
 
   if (loading) {
@@ -649,9 +681,36 @@ function AdmissionInsights() {
                       Other Achievements
                     </h4>
                   </div>
-                  <p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded">
-                    {data.other_achievements || "No achievements listed"}
-                  </p>
+                  <div className="bg-yellow-50 p-2 rounded">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {exceedsFiveLines(data.other_achievements) &&
+                      !expandedAchievements.has(data.id || index.toString())
+                        ? getTruncatedText(data.other_achievements)
+                        : data.other_achievements || "No achievements listed"}
+                    </p>
+                    {exceedsFiveLines(data.other_achievements) && (
+                      <button
+                        onClick={() =>
+                          toggleAchievements(data.id || index.toString())
+                        }
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-2 font-medium"
+                      >
+                        {expandedAchievements.has(
+                          data.id || index.toString()
+                        ) ? (
+                          <>
+                            <ChevronUp className="w-3 h-3" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3 h-3" />
+                            Show More
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
