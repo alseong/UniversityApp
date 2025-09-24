@@ -644,9 +644,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
             {/* University Applications */}
             <Card>
               <CardHeader>
-                <CardTitle>University Applications</CardTitle>
+                <CardTitle>Applied/Interested Universities</CardTitle>
                 <CardDescription>
-                  Which universities did you apply to and what was the outcome?
+                  Which universities did you apply or plan on applying?
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

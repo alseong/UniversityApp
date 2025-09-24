@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, ExternalLink } from "lucide-react";
 import { FilterState } from "@/types/dashboard";
+import Link from "next/link";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { createDataFilter } from "@/utils/filters";
 import { calculateGradeStats } from "@/utils/statistics";
@@ -282,13 +284,25 @@ export default function GradeStatistics() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-green-600" />
-          Grade Analysis
-        </CardTitle>
-        <CardDescription>
-          Average and median grades with distribution by acceptance status
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              Grade Analysis
+            </CardTitle>
+            <CardDescription>
+              Average and median grades with distribution by acceptance status
+            </CardDescription>
+          </div>
+          <Link href="/2026-results">
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              size="sm"
+            >
+              View 2026 Insights
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Filters */}

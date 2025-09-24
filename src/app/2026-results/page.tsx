@@ -198,7 +198,7 @@ export default function Insights2026() {
                           : "University requirement not met"
                       }
                     ></div>
-                    <span>Add at least 1 university application</span>
+                    <span>Add at least 1 Applied/Interested University</span>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                     <div
