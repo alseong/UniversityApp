@@ -136,8 +136,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <p className="text-blue-700 text-sm mt-3">
-                      If you don't complete referrals, we'll notify you about
-                      the $10 payment one week before. Parents attend free!
+                      Or $10 for direct entry.
                     </p>
                   </div>
 
