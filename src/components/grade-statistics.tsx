@@ -336,7 +336,7 @@ export default function GradeStatistics() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-start justify-between">
+        <div className="space-y-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-600" />
@@ -346,9 +346,9 @@ export default function GradeStatistics() {
               Average and median grades with distribution by acceptance status
             </CardDescription>
           </div>
-          <Link href="/2026-results">
+          <Link href="/2026-results" className="block">
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full sm:w-auto"
               size="sm"
             >
               View 2026 Insights
