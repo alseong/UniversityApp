@@ -188,7 +188,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     level: "grade_11",
                     courseName: "",
                     courseCode: "",
-                    grade: "",
+                    grade: null,
                     type: "u",
                     ibApMark: undefined,
                     otherSpecialization: "",

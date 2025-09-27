@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -16,6 +16,9 @@ import Link from "next/link";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { createDataFilter } from "@/utils/filters";
 import { calculateGradeStats } from "@/utils/statistics";
+import { checkUserHasSufficientData, UserData } from "@/utils/auth";
+import ProfileCompletionModal from "./profile-completion-modal";
+import { createClient } from "../../supabase/client";
 import {
   BarChart,
   Bar,
@@ -33,6 +36,29 @@ export default function GradeStatistics() {
     status: "All",
     attendingYear: "All",
   });
+  const [hasSufficientData, setHasSufficientData] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Check user data on component mount
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { hasSufficientData: hasData, userData: data } =
+          await checkUserHasSufficientData(user.id);
+        setHasSufficientData(hasData);
+        setUserData(data);
+      }
+      setLoading(false);
+    };
+    checkUser();
+  }, []);
 
   const {
     allRecords,
@@ -161,6 +187,12 @@ export default function GradeStatistics() {
   };
 
   const handleProgramChange = (value: string) => {
+    // Check if user has sufficient data for program filter
+    if (value !== "All" && !hasSufficientData) {
+      setShowModal(true);
+      return;
+    }
+
     setFilters((prev) => {
       const newFilters = { ...prev, program: value };
 
@@ -180,6 +212,26 @@ export default function GradeStatistics() {
 
       return newFilters;
     });
+  };
+
+  const handleStatusChange = (value: string) => {
+    // Check if user has sufficient data for status filter
+    if (value !== "All" && !hasSufficientData) {
+      setShowModal(true);
+      return;
+    }
+
+    setFilters((prev) => ({ ...prev, status: value }));
+  };
+
+  const handleAttendingYearChange = (value: string) => {
+    // Check if user has sufficient data for attending year filter
+    if (value !== "All" && !hasSufficientData) {
+      setShowModal(true);
+      return;
+    }
+
+    setFilters((prev) => ({ ...prev, attendingYear: value }));
   };
 
   const filteredData = useMemo(() => {
@@ -333,9 +385,7 @@ export default function GradeStatistics() {
             <label className="text-sm font-medium mb-2 block">Status</label>
             <SearchableSelect
               value={filters.status}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, status: value }))
-              }
+              onValueChange={handleStatusChange}
               placeholder="Select status"
               searchPlaceholder="Search statuses..."
               options={statuses.map((status) => ({
@@ -351,9 +401,7 @@ export default function GradeStatistics() {
             </label>
             <SearchableSelect
               value={filters.attendingYear}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, attendingYear: value }))
-              }
+              onValueChange={handleAttendingYearChange}
               placeholder="Select year"
               searchPlaceholder="Search years..."
               options={attendingYears.map((year) => ({
@@ -490,6 +538,13 @@ export default function GradeStatistics() {
           </div>
         )}
       </CardContent>
+
+      {/* Profile Completion Modal */}
+      <ProfileCompletionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        userData={userData}
+      />
     </Card>
   );
 }
