@@ -84,7 +84,8 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            Creating a transparent path to higher education for all students.
+            Paving a transparent path for all students transitioning to higher
+            education
           </p>
         </div>
       </section>
