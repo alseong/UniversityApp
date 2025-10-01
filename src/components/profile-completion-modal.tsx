@@ -77,7 +77,7 @@ export default function ProfileCompletionModal({
                 }`}
               />
               <span className={hasGrades ? "text-green-700" : "text-gray-600"}>
-                Add grades (6+ individual grades preferred, or at least 1
+                Add grades (6+ individual courses preferred, or at least 1
                 average grade)
               </span>
             </div>

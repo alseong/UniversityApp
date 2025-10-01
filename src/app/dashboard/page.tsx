@@ -123,7 +123,7 @@ export default function Dashboard() {
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          Add grades (6+ individual grades preferred, or at
+                          Add grades (6+ individual courses preferred, or at
                           least 1 average grade)
                         </p>
                       </div>

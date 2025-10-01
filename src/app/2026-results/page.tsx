@@ -207,7 +207,7 @@ export default function Insights2026() {
                       className={`w-3 h-3 rounded-full ${(userData?.grades && userData.grades.length >= 6) || (userData?.avg_grade_11 && userData.avg_grade_11.trim() !== "") || (userData?.avg_grade_12 && userData.avg_grade_12.trim() !== "") ? "bg-green-500" : "bg-gray-300"}`}
                     ></div>
                     <span>
-                      Add grades (6+ individual grades preferred, or at least 1
+                      Add grades (6+ individual courses preferred, or at least 1
                       average grade)
                     </span>
                   </div>
