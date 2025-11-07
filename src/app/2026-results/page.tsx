@@ -207,7 +207,7 @@ export default function Insights2026() {
                       className={`w-3 h-3 rounded-full ${(userData?.grades && userData.grades.length >= 6) || (userData?.avg_grade_11 && userData.avg_grade_11.trim() !== "") || (userData?.avg_grade_12 && userData.avg_grade_12.trim() !== "") ? "bg-green-500" : "bg-gray-300"}`}
                     ></div>
                     <span>
-                      Add grades (6+ individual courses preferred, or at least 1
+                      Add grades (6+ individual grades preferred, or at least 1
                       average grade)
                     </span>
                   </div>
@@ -242,6 +242,7 @@ function AdmissionInsights() {
   const [error, setError] = useState<string | null>(null);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(
     new Set()
   );
@@ -318,8 +319,14 @@ function AdmissionInsights() {
       );
     }
 
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.status === selectedStatus)
+      );
+    }
+
     setFilteredData(filtered);
-  }, [insightsData, selectedUniversity, selectedProgram]);
+  }, [insightsData, selectedUniversity, selectedProgram, selectedStatus]);
 
   // Get unique universities and programs from the data (only from items with meaningful content)
   const getUniqueUniversities = () => {
@@ -376,6 +383,34 @@ function AdmissionInsights() {
       }
     });
     return Array.from(programs).sort();
+  };
+
+  const getUniqueStatuses = () => {
+    const statuses = new Set<string>();
+    insightsData.forEach((data) => {
+      // Only consider items that have meaningful content
+      const hasUniversities =
+        data.universities &&
+        data.universities.length > 0 &&
+        data.universities.some(
+          (uni: any) =>
+            uni.name &&
+            uni.name.trim() !== "" &&
+            uni.program &&
+            uni.program.trim() !== ""
+        );
+      const hasAchievements =
+        data.other_achievements && data.other_achievements.trim() !== "";
+
+      if (hasUniversities || hasAchievements) {
+        data.universities?.forEach((uni: any) => {
+          if (uni.status && uni.status.trim() !== "") {
+            statuses.add(uni.status);
+          }
+        });
+      }
+    });
+    return Array.from(statuses).sort();
   };
 
   const calculateAverageGrade = (grades: any[], level: string) => {
@@ -473,6 +508,7 @@ function AdmissionInsights() {
 
   const uniqueUniversities = getUniqueUniversities();
   const uniquePrograms = getUniquePrograms();
+  const uniqueStatuses = getUniqueStatuses();
 
   return (
     <div className="space-y-6">
@@ -529,6 +565,31 @@ function AdmissionInsights() {
                     {uniquePrograms.map((program) => (
                       <SelectItem key={program} value={program}>
                         {program}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Application Status Filter */}
+            {uniqueStatuses.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Application Status
+                </label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {uniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
                       </SelectItem>
                     ))}
                   </SelectContent>
