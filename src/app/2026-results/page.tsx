@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  createContext,
+  useContext,
+} from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
@@ -32,10 +38,84 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { AdmissionRecord, ProcessedData } from "@/types/dashboard";
+import { filterValidRecords, filterAcceptedRecords } from "@/utils/filters";
+import { calculateGradeStats } from "@/utils/statistics";
 
 // Force dynamic rendering to prevent caching issues
 export const dynamic = "force-dynamic";
 export const fetchCache = "default-no-store";
+
+// Context for 2026 processed data
+const Processed2026DataContext = createContext<ProcessedData | null>(null);
+
+// Hook to use 2026 processed data
+const use2026ProcessedData = (): ProcessedData | null => {
+  return useContext(Processed2026DataContext);
+};
+
+// Provider component for 2026 data
+function Processed2026DataProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [supabaseData, setSupabaseData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("admissions_data")
+          .select("*")
+          .or(
+            "university_attendance.ilike.%2026%,university_attendance.ilike.%2027%"
+          )
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching 2026 data:", error);
+          setSupabaseData([]);
+        } else {
+          setSupabaseData(data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching 2026 data:", err);
+        setSupabaseData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [supabase]);
+
+  const processedData = useMemo(() => {
+    if (loading || supabaseData.length === 0) {
+      return {
+        allRecords: [],
+        acceptedRecords: [],
+        schools: ["All"],
+        programs: ["All"],
+        statuses: ["All"],
+        attendingYears: ["All"],
+        schoolCounts: {},
+        programCounts: {},
+      };
+    }
+
+    const records = transformSupabaseDataToAdmissionRecords(supabaseData);
+    return process2026Data(records);
+  }, [supabaseData, loading]);
+
+  return (
+    <Processed2026DataContext.Provider value={processedData}>
+      {children}
+    </Processed2026DataContext.Provider>
+  );
+}
 
 interface UserData {
   universities: Array<{ name: string; program: string; status: string }>;
@@ -224,9 +304,11 @@ export default function Insights2026() {
             </Card>
           ) : (
             /* Live 2026/2027 Insights */
-            <div className="max-w-6xl mx-auto space-y-6">
-              <AdmissionInsights />
-            </div>
+            <Processed2026DataProvider>
+              <div className="max-w-6xl mx-auto space-y-6">
+                <AdmissionInsightsWithFilters />
+              </div>
+            </Processed2026DataProvider>
           )}
         </div>
       </main>
@@ -234,7 +316,898 @@ export default function Insights2026() {
   );
 }
 
-// Component to display admission insights
+// Transform Supabase data to AdmissionRecord format
+const transformSupabaseDataToAdmissionRecords = (
+  supabaseData: any[]
+): AdmissionRecord[] => {
+  const records: AdmissionRecord[] = [];
+
+  supabaseData.forEach((data) => {
+    if (!data.universities || data.universities.length === 0) {
+      return;
+    }
+
+    // Calculate average grade
+    let average: number | null = null;
+    if (data.avg_grade_12) {
+      average = Number(data.avg_grade_12);
+    } else if (data.avg_grade_11) {
+      average = Number(data.avg_grade_11);
+    } else if (data.grades && data.grades.length > 0) {
+      // Calculate from individual grades
+      const grade12Grades = data.grades.filter(
+        (g: any) => g.level === "grade_12" && g.grade !== null && g.grade !== ""
+      );
+      if (grade12Grades.length > 0) {
+        const sum = grade12Grades.reduce(
+          (acc: number, g: any) => acc + Number(g.grade),
+          0
+        );
+        average = sum / grade12Grades.length;
+      } else {
+        const grade11Grades = data.grades.filter(
+          (g: any) =>
+            g.level === "grade_11" && g.grade !== null && g.grade !== ""
+        );
+        if (grade11Grades.length > 0) {
+          const sum = grade11Grades.reduce(
+            (acc: number, g: any) => acc + Number(g.grade),
+            0
+          );
+          average = sum / grade11Grades.length;
+        }
+      }
+    }
+
+    // Create a record for each university/program combination
+    data.universities.forEach((uni: any) => {
+      if (
+        uni.name &&
+        uni.name.trim() !== "" &&
+        uni.program &&
+        uni.program.trim() !== ""
+      ) {
+        records.push({
+          School: [uni.name],
+          Program: [uni.program],
+          Status: uni.status || "pending",
+          Average: average,
+          "Date Accepted": "",
+          "Type (101/105)": "",
+          Discord: "",
+          Other: "",
+          "Attending Year": data.university_attendance || "",
+        });
+      }
+    });
+  });
+
+  return records;
+};
+
+// Process 2026/2027 data similar to useProcessedAdmissionData
+const process2026Data = (records: AdmissionRecord[]): ProcessedData => {
+  const allRecords = filterValidRecords(records);
+  const acceptedRecords = filterAcceptedRecords(records);
+
+  // Extract unique values
+  const schoolsSet = new Set<string>();
+  const programsSet = new Set<string>();
+  const statusesSet = new Set<string>();
+  const attendingYearsSet = new Set<string>();
+
+  // Count schools and programs
+  const schoolCounts: { [key: string]: number } = {};
+  const programCounts: { [key: string]: number } = {};
+
+  allRecords.forEach((record) => {
+    record.School.forEach((school) => {
+      schoolsSet.add(school);
+      schoolCounts[school] = (schoolCounts[school] || 0) + 1;
+    });
+
+    record.Program.forEach((program) => {
+      programsSet.add(program);
+      programCounts[program] = (programCounts[program] || 0) + 1;
+    });
+
+    if (record.Status) {
+      statusesSet.add(record.Status);
+    }
+
+    if (record["Attending Year"]) {
+      attendingYearsSet.add(record["Attending Year"]);
+    }
+  });
+
+  // Filter schools to only include those with at least 2 records
+  const schoolsWithEnoughData = Object.entries(schoolCounts)
+    .filter(([_, count]) => count >= 2)
+    .sort(([, a], [, b]) => b - a)
+    .map(([school]) => school);
+
+  // Filter programs to only include those with at least 4 records
+  const programsWithEnoughData = Object.entries(programCounts)
+    .filter(([_, count]) => count >= 4)
+    .sort(([, a], [, b]) => b - a)
+    .map(([program]) => program);
+
+  return {
+    allRecords,
+    acceptedRecords,
+    schools: ["All", ...schoolsWithEnoughData],
+    programs: ["All", ...programsWithEnoughData],
+    statuses: ["All", ...Array.from(statusesSet).sort()],
+    attendingYears: ["All", ...Array.from(attendingYearsSet).sort()],
+    schoolCounts,
+    programCounts,
+  };
+};
+
+// Component that combines filters, grade analysis, and results
+function AdmissionInsightsWithFilters() {
+  const [insightsData, setInsightsData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedExtracurriculars, setSelectedExtracurriculars] =
+    useState<string>("all");
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchInsightsData();
+  }, []);
+
+  const fetchInsightsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from("admissions_data")
+        .select("*")
+        .or(
+          "university_attendance.ilike.%2026%,university_attendance.ilike.%2027%"
+        )
+        .order("created_at", { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      setInsightsData(data || []);
+      setFilteredData(data || []);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch insights data"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter data based on selected filters
+  useEffect(() => {
+    let filtered = insightsData;
+
+    // First, filter out items where both universities/programs AND other achievements are empty
+    filtered = filtered.filter((data) => {
+      const hasUniversities =
+        data.universities &&
+        data.universities.length > 0 &&
+        data.universities.some(
+          (uni: any) =>
+            uni.name &&
+            uni.name.trim() !== "" &&
+            uni.program &&
+            uni.program.trim() !== ""
+        );
+      const hasAchievements =
+        data.other_achievements && data.other_achievements.trim() !== "";
+      return hasUniversities || hasAchievements;
+    });
+
+    if (selectedUniversity !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.name === selectedUniversity)
+      );
+    }
+
+    if (selectedProgram !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.program === selectedProgram)
+      );
+    }
+
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter((data) =>
+        data.universities?.some((uni: any) => uni.status === selectedStatus)
+      );
+    }
+
+    if (selectedExtracurriculars !== "all") {
+      const hasExtracurriculars = (data: any) => {
+        return data.other_achievements && data.other_achievements.trim() !== "";
+      };
+
+      if (selectedExtracurriculars === "has") {
+        filtered = filtered.filter(hasExtracurriculars);
+      } else if (selectedExtracurriculars === "none") {
+        filtered = filtered.filter((data) => !hasExtracurriculars(data));
+      }
+    }
+
+    setFilteredData(filtered);
+  }, [
+    insightsData,
+    selectedUniversity,
+    selectedProgram,
+    selectedStatus,
+    selectedExtracurriculars,
+  ]);
+
+  // Dynamically filter universities based on selected program
+  const availableUniversities = useMemo(() => {
+    const universities = new Set<string>();
+
+    if (selectedProgram === "all") {
+      // When "All programs" is selected, show all universities
+      insightsData.forEach((data) => {
+        const hasUniversities =
+          data.universities &&
+          data.universities.length > 0 &&
+          data.universities.some(
+            (uni: any) =>
+              uni.name &&
+              uni.name.trim() !== "" &&
+              uni.program &&
+              uni.program.trim() !== ""
+          );
+        const hasAchievements =
+          data.other_achievements && data.other_achievements.trim() !== "";
+
+        if (hasUniversities || hasAchievements) {
+          data.universities?.forEach((uni: any) => {
+            if (uni.name && uni.name.trim() !== "") {
+              universities.add(uni.name);
+            }
+          });
+        }
+      });
+    } else {
+      // When a specific program is selected, only show universities that have that program
+      insightsData.forEach((data) => {
+        if (data.universities && data.universities.length > 0) {
+          data.universities.forEach((uni: any) => {
+            if (
+              uni.program === selectedProgram &&
+              uni.name &&
+              uni.name.trim() !== ""
+            ) {
+              universities.add(uni.name);
+            }
+          });
+        }
+      });
+    }
+
+    return Array.from(universities).sort();
+  }, [insightsData, selectedProgram]);
+
+  // Dynamically filter programs based on selected university
+  const availablePrograms = useMemo(() => {
+    const programs = new Set<string>();
+
+    if (selectedUniversity === "all") {
+      // When "All universities" is selected, show all programs
+      insightsData.forEach((data) => {
+        const hasUniversities =
+          data.universities &&
+          data.universities.length > 0 &&
+          data.universities.some(
+            (uni: any) =>
+              uni.name &&
+              uni.name.trim() !== "" &&
+              uni.program &&
+              uni.program.trim() !== ""
+          );
+        const hasAchievements =
+          data.other_achievements && data.other_achievements.trim() !== "";
+
+        if (hasUniversities || hasAchievements) {
+          data.universities?.forEach((uni: any) => {
+            if (uni.program && uni.program.trim() !== "") {
+              programs.add(uni.program);
+            }
+          });
+        }
+      });
+    } else {
+      // When a specific university is selected, only show programs that have that university
+      insightsData.forEach((data) => {
+        if (data.universities && data.universities.length > 0) {
+          data.universities.forEach((uni: any) => {
+            if (
+              uni.name === selectedUniversity &&
+              uni.program &&
+              uni.program.trim() !== ""
+            ) {
+              programs.add(uni.program);
+            }
+          });
+        }
+      });
+    }
+
+    return Array.from(programs).sort();
+  }, [insightsData, selectedUniversity]);
+
+  // Validate current selections against available options
+  const validatedUniversity = useMemo(() => {
+    if (
+      selectedUniversity === "all" ||
+      availableUniversities.includes(selectedUniversity)
+    ) {
+      return selectedUniversity;
+    }
+    return "all";
+  }, [selectedUniversity, availableUniversities]);
+
+  const validatedProgram = useMemo(() => {
+    if (
+      selectedProgram === "all" ||
+      availablePrograms.includes(selectedProgram)
+    ) {
+      return selectedProgram;
+    }
+    return "all";
+  }, [selectedProgram, availablePrograms]);
+
+  // Predefined application statuses
+  const applicationStatuses = [
+    {
+      value: "received_offer_and_accepted",
+      label: "Received Offer and Accepted",
+    },
+    {
+      value: "received_offer_and_rejected",
+      label: "Received Offer and Rejected",
+    },
+    { value: "accepted", label: "Accepted" },
+    { value: "early_acceptance", label: "Early Acceptance" },
+    { value: "waitlisted", label: "Waitlisted" },
+    { value: "deferred", label: "Deferred" },
+    { value: "rejected", label: "Rejected" },
+    { value: "applied", label: "Applied" },
+    { value: "planning_on_applying", label: "Planning on applying" },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Loading insights...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <p className="text-red-600">Error loading insights: {error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Filters - At the top */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg">Filters</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* University Filter */}
+            {availableUniversities.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  University
+                </label>
+                <Select
+                  value={validatedUniversity}
+                  onValueChange={(value) => {
+                    setSelectedUniversity(value);
+                    // If the current program is not available for the new university, reset it to "All"
+                    if (value !== "all") {
+                      const availableProgramsForUniversity = insightsData
+                        .filter((data) =>
+                          data.universities?.some(
+                            (uni: any) => uni.name === value
+                          )
+                        )
+                        .flatMap(
+                          (data) =>
+                            data.universities
+                              ?.filter((uni: any) => uni.name === value)
+                              .map((uni: any) => uni.program) || []
+                        );
+
+                      if (
+                        !availableProgramsForUniversity.includes(
+                          selectedProgram
+                        ) &&
+                        selectedProgram !== "all"
+                      ) {
+                        setSelectedProgram("all");
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Universities" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Universities</SelectItem>
+                    {availableUniversities.map((university: string) => (
+                      <SelectItem key={university} value={university}>
+                        {university}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Program Filter */}
+            {availablePrograms.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Program
+                </label>
+                <Select
+                  value={validatedProgram}
+                  onValueChange={(value) => {
+                    setSelectedProgram(value);
+                    // If the current university is not available for the new program, reset it to "All"
+                    if (value !== "all") {
+                      const availableUniversitiesForProgram = insightsData
+                        .filter((data) =>
+                          data.universities?.some(
+                            (uni: any) => uni.program === value
+                          )
+                        )
+                        .flatMap(
+                          (data) =>
+                            data.universities
+                              ?.filter((uni: any) => uni.program === value)
+                              .map((uni: any) => uni.name) || []
+                        );
+
+                      if (
+                        !availableUniversitiesForProgram.includes(
+                          selectedUniversity
+                        ) &&
+                        selectedUniversity !== "all"
+                      ) {
+                        setSelectedUniversity("all");
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Programs" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Programs</SelectItem>
+                    {availablePrograms.map((program: string) => (
+                      <SelectItem key={program} value={program}>
+                        {program}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Application Status Filter */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Application Status
+              </label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {applicationStatuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Extracurriculars Filter */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Extracurriculars
+              </label>
+              <Select
+                value={selectedExtracurriculars}
+                onValueChange={setSelectedExtracurriculars}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Records" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Records</SelectItem>
+                  <SelectItem value="has">Has Extracurriculars</SelectItem>
+                  <SelectItem value="none">No Extracurriculars</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Grade Analysis - Based on filtered data */}
+      <GradeStatistics2026 filteredData={filteredData} />
+
+      {/* Results List */}
+      <AdmissionInsightsList filteredData={filteredData} />
+    </div>
+  );
+}
+
+function GradeStatistics2026({ filteredData }: { filteredData: any[] }) {
+  const gradeStats = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) {
+      return { average: 0, median: 0, count: 0 };
+    }
+
+    // Transform filtered data to AdmissionRecord format
+    // Each university/program combination is treated as a unique item
+    const records = transformSupabaseDataToAdmissionRecords(filteredData);
+    return calculateGradeStats(records);
+  }, [filteredData]);
+
+  if (!filteredData || filteredData.length === 0 || gradeStats.count === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-600" />
+            Grade Analysis
+          </CardTitle>
+          <CardDescription>
+            Average and median grades with distribution by acceptance status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-gray-500 py-8">
+            No data available for the selected filters
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-green-600" />
+          Grade Analysis
+        </CardTitle>
+        <CardDescription>
+          Average and median grades with distribution by acceptance status
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-700">
+              {gradeStats.average}%
+            </div>
+            <div className="text-sm text-green-600">Average Grade</div>
+          </div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-700">
+              {gradeStats.median}%
+            </div>
+            <div className="text-sm text-blue-600">Median Grade</div>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-700">
+              {gradeStats.count}
+            </div>
+            <div className="text-sm text-purple-600">Total Records</div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Component to display the filtered results list
+function AdmissionInsightsList({ filteredData }: { filteredData: any[] }) {
+  const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Predefined application statuses
+  const applicationStatuses = [
+    {
+      value: "received_offer_and_accepted",
+      label: "Received Offer and Accepted",
+    },
+    {
+      value: "received_offer_and_rejected",
+      label: "Received Offer and Rejected",
+    },
+    { value: "accepted", label: "Accepted" },
+    { value: "early_acceptance", label: "Early Acceptance" },
+    { value: "waitlisted", label: "Waitlisted" },
+    { value: "deferred", label: "Deferred" },
+    { value: "rejected", label: "Rejected" },
+    { value: "applied", label: "Applied" },
+    { value: "planning_on_applying", label: "Planning on applying" },
+  ];
+
+  const getStatusLabel = (statusValue: string) => {
+    const status = applicationStatuses.find((s) => s.value === statusValue);
+    return status ? status.label : statusValue;
+  };
+
+  const calculateAverageGrade = (grades: any[], level: string) => {
+    const levelGrades = grades.filter(
+      (grade) =>
+        grade.level === level && grade.grade !== null && grade.grade !== ""
+    );
+    if (levelGrades.length === 0) return null;
+
+    const sum = levelGrades.reduce(
+      (acc, grade) => acc + Number(grade.grade),
+      0
+    );
+    return Math.round((sum / levelGrades.length) * 10) / 10;
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "received_offer_and_accepted":
+      case "accepted":
+      case "early_acceptance":
+        return "default";
+      case "waitlisted":
+      case "deferred":
+        return "secondary";
+      case "received_offer_and_rejected":
+      case "rejected":
+        return "destructive";
+      case "applied":
+      case "planning_on_applying":
+      case "pending":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  const exceedsFiveLines = (text: string) => {
+    if (!text) return false;
+    const lines = text.split("\n");
+    return lines.length > 5;
+  };
+
+  const getTruncatedText = (text: string) => {
+    if (!text) return "No achievements listed";
+    const lines = text.split("\n");
+    return lines.slice(0, 5).join("\n");
+  };
+
+  const toggleAchievements = (dataId: string) => {
+    setExpandedAchievements((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(dataId)) {
+        newSet.delete(dataId);
+      } else {
+        newSet.add(dataId);
+      }
+      return newSet;
+    });
+  };
+
+  if (filteredData.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">No students match the selected filters.</p>
+        <p className="text-sm text-gray-500 mt-2">
+          Try adjusting your filter criteria.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {filteredData.map((data, index) => {
+        const avgGrade11 = data.avg_grade_11
+          ? Number(data.avg_grade_11)
+          : calculateAverageGrade(data.grades || [], "grade_11");
+        const avgGrade12 = data.avg_grade_12
+          ? Number(data.avg_grade_12)
+          : calculateAverageGrade(data.grades || [], "grade_12");
+
+        const grade11Courses = (data.grades || []).filter(
+          (grade: any) =>
+            grade.level === "grade_11" &&
+            grade.grade !== null &&
+            grade.grade !== ""
+        );
+        const grade12Courses = (data.grades || []).filter(
+          (grade: any) =>
+            grade.level === "grade_12" &&
+            grade.grade !== null &&
+            grade.grade !== ""
+        );
+
+        return (
+          <Card key={data.id || index} className="h-fit">
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg">
+                    {data.university_attendance || "University Student"}
+                  </CardTitle>
+                </div>
+                <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  User: {data.user_id?.slice(-6) || "Unknown"}
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* Universities & Programs */}
+              {data.universities && data.universities.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <BookOpen className="h-4 w-4 text-green-600" />
+                    <h4 className="font-semibold text-sm">
+                      Universities & Programs
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
+                    {data.universities.map((uni: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{uni.name}</p>
+                          <p className="text-xs text-gray-600">{uni.program}</p>
+                        </div>
+                        <Badge variant={getStatusBadgeVariant(uni.status)}>
+                          {getStatusLabel(uni.status)}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Average Grade 11 */}
+              {avgGrade11 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    <h4 className="font-semibold text-sm">
+                      Average Grade 11: {avgGrade11}%
+                    </h4>
+                  </div>
+                  {grade11Courses.length > 0 && (
+                    <div className="space-y-1">
+                      {grade11Courses.map((course: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between text-xs text-gray-600"
+                        >
+                          <span>
+                            {course.courseName} ({course.courseCode})
+                          </span>
+                          <span>{course.grade}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Average Grade 12 */}
+              {avgGrade12 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-orange-600" />
+                    <h4 className="font-semibold text-sm">
+                      Average Grade 12: {avgGrade12}%
+                    </h4>
+                  </div>
+                  {grade12Courses.length > 0 && (
+                    <div className="space-y-1">
+                      {grade12Courses.map((course: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between text-xs text-gray-600"
+                        >
+                          <span>
+                            {course.courseName} ({course.courseCode})
+                          </span>
+                          <span>{course.grade}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Other Achievements */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="h-4 w-4 text-yellow-600" />
+                  <h4 className="font-semibold text-sm">Other Achievements</h4>
+                </div>
+                <div className="bg-yellow-50 p-2 rounded">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {exceedsFiveLines(data.other_achievements) &&
+                    !expandedAchievements.has(data.id || index.toString())
+                      ? getTruncatedText(data.other_achievements)
+                      : data.other_achievements || "No achievements listed"}
+                  </p>
+                  {exceedsFiveLines(data.other_achievements) && (
+                    <button
+                      onClick={() =>
+                        toggleAchievements(data.id || index.toString())
+                      }
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-2 font-medium"
+                    >
+                      {expandedAchievements.has(data.id || index.toString()) ? (
+                        <>
+                          <ChevronUp className="w-3 h-3" />
+                          Show Less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3" />
+                          Show More
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+// Component to display admission insights (old - can be removed if not needed)
 function AdmissionInsights() {
   const [insightsData, setInsightsData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
@@ -559,7 +1532,7 @@ function AdmissionInsights() {
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
                     <SelectItem value="all">All Universities</SelectItem>
-                    {uniqueUniversities.map((university) => (
+                    {uniqueUniversities.map((university: string) => (
                       <SelectItem key={university} value={university}>
                         {university}
                       </SelectItem>
@@ -584,7 +1557,7 @@ function AdmissionInsights() {
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
                     <SelectItem value="all">All Programs</SelectItem>
-                    {uniquePrograms.map((program) => (
+                    {uniquePrograms.map((program: string) => (
                       <SelectItem key={program} value={program}>
                         {program}
                       </SelectItem>
