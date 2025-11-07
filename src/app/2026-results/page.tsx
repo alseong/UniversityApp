@@ -243,6 +243,8 @@ function AdmissionInsights() {
   const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedExtracurriculars, setSelectedExtracurriculars] =
+    useState<string>("all");
   const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(
     new Set()
   );
@@ -325,8 +327,26 @@ function AdmissionInsights() {
       );
     }
 
+    if (selectedExtracurriculars !== "all") {
+      const hasExtracurriculars = (data: any) => {
+        return data.other_achievements && data.other_achievements.trim() !== "";
+      };
+
+      if (selectedExtracurriculars === "has") {
+        filtered = filtered.filter(hasExtracurriculars);
+      } else if (selectedExtracurriculars === "none") {
+        filtered = filtered.filter((data) => !hasExtracurriculars(data));
+      }
+    }
+
     setFilteredData(filtered);
-  }, [insightsData, selectedUniversity, selectedProgram, selectedStatus]);
+  }, [
+    insightsData,
+    selectedUniversity,
+    selectedProgram,
+    selectedStatus,
+    selectedExtracurriculars,
+  ]);
 
   // Get unique universities and programs from the data (only from items with meaningful content)
   const getUniqueUniversities = () => {
@@ -385,32 +405,29 @@ function AdmissionInsights() {
     return Array.from(programs).sort();
   };
 
-  const getUniqueStatuses = () => {
-    const statuses = new Set<string>();
-    insightsData.forEach((data) => {
-      // Only consider items that have meaningful content
-      const hasUniversities =
-        data.universities &&
-        data.universities.length > 0 &&
-        data.universities.some(
-          (uni: any) =>
-            uni.name &&
-            uni.name.trim() !== "" &&
-            uni.program &&
-            uni.program.trim() !== ""
-        );
-      const hasAchievements =
-        data.other_achievements && data.other_achievements.trim() !== "";
+  // Predefined application statuses matching the submit form
+  const applicationStatuses = [
+    {
+      value: "received_offer_and_accepted",
+      label: "Received Offer and Accepted",
+    },
+    {
+      value: "received_offer_and_rejected",
+      label: "Received Offer and Rejected",
+    },
+    { value: "accepted", label: "Accepted" },
+    { value: "early_acceptance", label: "Early Acceptance" },
+    { value: "waitlisted", label: "Waitlisted" },
+    { value: "deferred", label: "Deferred" },
+    { value: "rejected", label: "Rejected" },
+    { value: "applied", label: "Applied" },
+    { value: "planning_on_applying", label: "Planning on applying" },
+  ];
 
-      if (hasUniversities || hasAchievements) {
-        data.universities?.forEach((uni: any) => {
-          if (uni.status && uni.status.trim() !== "") {
-            statuses.add(uni.status);
-          }
-        });
-      }
-    });
-    return Array.from(statuses).sort();
+  // Helper function to get status label from value
+  const getStatusLabel = (statusValue: string) => {
+    const status = applicationStatuses.find((s) => s.value === statusValue);
+    return status ? status.label : statusValue;
   };
 
   const calculateAverageGrade = (grades: any[], level: string) => {
@@ -429,12 +446,18 @@ function AdmissionInsights() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
+      case "received_offer_and_accepted":
       case "accepted":
+      case "early_acceptance":
         return "default";
       case "waitlisted":
+      case "deferred":
         return "secondary";
+      case "received_offer_and_rejected":
       case "rejected":
         return "destructive";
+      case "applied":
+      case "planning_on_applying":
       case "pending":
         return "outline";
       default:
@@ -508,7 +531,6 @@ function AdmissionInsights() {
 
   const uniqueUniversities = getUniqueUniversities();
   const uniquePrograms = getUniquePrograms();
-  const uniqueStatuses = getUniqueStatuses();
 
   return (
     <div className="space-y-6">
@@ -573,29 +595,44 @@ function AdmissionInsights() {
             )}
 
             {/* Application Status Filter */}
-            {uniqueStatuses.length > 0 && (
-              <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Application Status
-                </label>
-                <Select
-                  value={selectedStatus}
-                  onValueChange={setSelectedStatus}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {uniqueStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Application Status
+              </label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {applicationStatuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Extracurriculars Filter */}
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Extracurriculars
+              </label>
+              <Select
+                value={selectedExtracurriculars}
+                onValueChange={setSelectedExtracurriculars}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Records" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Records</SelectItem>
+                  <SelectItem value="has">Has Extracurriculars</SelectItem>
+                  <SelectItem value="none">No Extracurriculars</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -672,7 +709,7 @@ function AdmissionInsights() {
                             </p>
                           </div>
                           <Badge variant={getStatusBadgeVariant(uni.status)}>
-                            {uni.status}
+                            {getStatusLabel(uni.status)}
                           </Badge>
                         </div>
                       ))}
