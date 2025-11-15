@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   BarChart3,
   Users,
@@ -676,7 +677,7 @@ function AdmissionInsightsWithFilters() {
       value: "received_offer_and_rejected",
       label: "Received Offer and Rejected",
     },
-    { value: "accepted", label: "Accepted" },
+    { value: "accepted", label: "Received Offer" },
     { value: "early_acceptance", label: "Early Acceptance" },
     { value: "waitlisted", label: "Waitlisted" },
     { value: "deferred", label: "Deferred" },
@@ -723,7 +724,7 @@ function AdmissionInsightsWithFilters() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   University
                 </label>
-                <Select
+                <SearchableSelect
                   value={validatedUniversity}
                   onValueChange={(value) => {
                     setSelectedUniversity(value);
@@ -752,19 +753,16 @@ function AdmissionInsightsWithFilters() {
                       }
                     }
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Universities" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    <SelectItem value="all">All Universities</SelectItem>
-                    {availableUniversities.map((university: string) => (
-                      <SelectItem key={university} value={university}>
-                        {university}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="All Universities"
+                  searchPlaceholder="Search universities..."
+                  options={[
+                    { value: "all", label: "All Universities" },
+                    ...availableUniversities.map((university: string) => ({
+                      value: university,
+                      label: university,
+                    })),
+                  ]}
+                />
               </div>
             )}
 
@@ -774,7 +772,7 @@ function AdmissionInsightsWithFilters() {
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   Program
                 </label>
-                <Select
+                <SearchableSelect
                   value={validatedProgram}
                   onValueChange={(value) => {
                     setSelectedProgram(value);
@@ -803,19 +801,16 @@ function AdmissionInsightsWithFilters() {
                       }
                     }
                   }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Programs" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    <SelectItem value="all">All Programs</SelectItem>
-                    {availablePrograms.map((program: string) => (
-                      <SelectItem key={program} value={program}>
-                        {program}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="All Programs"
+                  searchPlaceholder="Search programs..."
+                  options={[
+                    { value: "all", label: "All Programs" },
+                    ...availablePrograms.map((program: string) => ({
+                      value: program,
+                      label: program,
+                    })),
+                  ]}
+                />
               </div>
             )}
 
@@ -957,7 +952,7 @@ function AdmissionInsightsList({ filteredData }: { filteredData: any[] }) {
       value: "received_offer_and_rejected",
       label: "Received Offer and Rejected",
     },
-    { value: "accepted", label: "Accepted" },
+    { value: "accepted", label: "Received Offer" },
     { value: "early_acceptance", label: "Early Acceptance" },
     { value: "waitlisted", label: "Waitlisted" },
     { value: "deferred", label: "Deferred" },
@@ -1388,7 +1383,7 @@ function AdmissionInsights() {
       value: "received_offer_and_rejected",
       label: "Received Offer and Rejected",
     },
-    { value: "accepted", label: "Accepted" },
+    { value: "accepted", label: "Received Offer" },
     { value: "early_acceptance", label: "Early Acceptance" },
     { value: "waitlisted", label: "Waitlisted" },
     { value: "deferred", label: "Deferred" },
