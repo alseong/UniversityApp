@@ -111,33 +111,25 @@ export default function Dashboard() {
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          What programs are suitable for me?
+                          Application coaching
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          Help me with my application!
+                          Career path exploration & planning
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          What does my future career path look like?
+                          Tutoring (Math, Sciences)
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          What is university like?
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      <div className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-blue-700 text-sm">
-                          Working on a personal project to help out with admissions
+                          Personal projects to help with application
                         </p>
                       </div>
                     </div>
