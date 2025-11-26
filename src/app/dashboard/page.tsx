@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowRight, BarChart3, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, BarChart3, TrendingUp, Users, Linkedin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
 import { useRouter } from "next/navigation";
@@ -66,28 +66,26 @@ export default function Dashboard() {
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
-          {/* Webinar Card - Full Width */}
+          {/* Coaching Consultation Card - Full Width */}
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 mb-8">
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className="flex-1">
                   <CardTitle className="text-xl sm:text-2xl text-blue-800">
-                    Register to our live webinar!
+                    Book a Coaching Consultation
                   </CardTitle>
                   <CardDescription className="text-blue-700 text-base sm:text-lg">
-                    Skip the brochures! Real university grads spill the tea on
-                    admissions, campus life & tech careers. Your burning
-                    questions answered live!
+                    Would love to learn more about the biggest concerns you might have when it comes to preparing for university.
                   </CardDescription>
                 </div>
                 <Link
-                  href="https://www.eventbrite.ca/e/university-of-waterloo-alumni-panel-live-ama-tickets-1732699614189?aff=oddtdtcreator"
+                  href="https://calendly.com/minjun6251/coaching-consultation"
                   className="w-full sm:w-auto"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base">
-                    Register
+                    Book Consultation
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
@@ -100,69 +98,63 @@ export default function Dashboard() {
                     variant="ghost"
                     className="w-full justify-between p-0 h-auto text-left font-semibold text-lg text-blue-800 hover:bg-transparent"
                   >
-                    Key Details
+                    What We Can Help With
                     <ChevronDown className="w-5 h-5 transition-transform duration-200" />
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-6 mt-3 pl-4 border-l-2 border-blue-200">
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-blue-800">
-                      Free Webinar Access
-                    </h4>
                     <p className="text-blue-700 mb-3">
-                      Attend this webinar for free by:
+                      Once I better understand your major concerns, I'll plan out our coaching sessions and provide you pricing details (options available from 1 time session to recurring sessions).
                     </p>
                     <div className="space-y-3">
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          Add at least 1 university and program you are
-                          interested in or already applied to
+                          What programs are suitable for me?
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          Add grades (6+ individual grades preferred, or at
-                          least 1 average grade)
+                          Help me with my application!
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                         <p className="text-blue-700">
-                          Refer 2 friends who also sign up and add their data
-                          (they can enter your email when signing up)
+                          What does my future career path look like?
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-blue-700">
+                          What is university like?
                         </p>
                       </div>
                     </div>
-                    <p className="text-blue-700 text-sm mt-3">
-                      Or $10 for direct entry.
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-blue-700 text-sm">
+                          Working on a personal project to help out with admissions
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-blue-700 text-sm mt-3 italic">
+                      Note: As I am a CS grad from UWaterloo, I may have limited knowledge on fields outside CS, Math and Engineering.
                     </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-blue-800">
-                      Submit Your Questions
-                    </h4>
-                    <p className="text-blue-700">
-                      We'll use your question submissions to tailor the webinar
-                      content for maximum value. While this session focuses on
-                      University of Waterloo, we're planning webinars for other
-                      universities soon - let us know which ones interest you!
-                    </p>
-                    <Link
-                      href="https://forms.gle/ewXnqhJpGBQmUZes8"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block"
-                    >
-                      <Button
-                        variant="outline"
-                        className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
+                    <div className="mt-4">
+                      <Link
+                        href="https://www.linkedin.com/in/minjun1998/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-800 text-sm font-medium"
                       >
-                        Submit Questions
-                      </Button>
-                    </Link>
+                        <Linkedin className="h-4 w-4" />
+                        Learn more about me on LinkedIn
+                      </Link>
+                    </div>
                   </div>
                 </CollapsibleContent>
               </Collapsible>
