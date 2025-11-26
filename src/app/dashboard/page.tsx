@@ -72,7 +72,7 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className="flex-1">
                   <CardTitle className="text-xl sm:text-2xl text-blue-800">
-                    Book a Coaching Consultation
+                    Coaching/Tutoring Consultation
                   </CardTitle>
                   <CardDescription className="text-blue-700 text-base sm:text-lg">
                     Would love to learn more about the biggest concerns you might have when it comes to preparing for university.
