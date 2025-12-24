@@ -67,7 +67,7 @@ export default function Dashboard() {
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Coaching Consultation Card - Full Width */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 mb-8">
+          {/* <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 mb-8">
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className="flex-1">
@@ -151,7 +151,7 @@ export default function Dashboard() {
                 </CollapsibleContent>
               </Collapsible>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Header Section */}
           <header className="mb-8">
