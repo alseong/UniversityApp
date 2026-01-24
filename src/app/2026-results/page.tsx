@@ -4,6 +4,8 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useRef,
+  useCallback,
   createContext,
   useContext,
 } from "react";
@@ -28,6 +30,14 @@ import {
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
   BarChart3,
   Users,
   TrendingUp,
@@ -38,6 +48,7 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
+  School,
 } from "lucide-react";
 import { AdmissionRecord, ProcessedData } from "@/types/dashboard";
 import { filterValidRecords, filterAcceptedRecords } from "@/utils/filters";
@@ -445,6 +456,182 @@ const process2026Data = (records: AdmissionRecord[]): ProcessedData => {
   };
 };
 
+// Normalize function for high school search (remove all non-alphabetic characters, lowercase)
+const normalizeHighSchool = (str: string) => {
+  return str.replace(/[^a-zA-Z]/g, "").toLowerCase();
+};
+
+// High school search component with normalized matching
+function HighSchoolSearchableSelect({
+  selectedHighSchool,
+  setSelectedHighSchool,
+  availableHighSchools,
+  normalizeHighSchool,
+}: {
+  selectedHighSchool: string;
+  setSelectedHighSchool: (value: string) => void;
+  availableHighSchools: string[];
+  normalizeHighSchool: (str: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when popover opens
+  useEffect(() => {
+    if (open && inputRef.current) {
+      // Small delay to ensure popover is fully rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [open]);
+
+  // Automatically apply filter as user types
+  useEffect(() => {
+    // Use a timeout to debounce and prevent rapid state changes
+    const timeoutId = setTimeout(() => {
+      if (searchValue.trim()) {
+        const normalizedSearch = normalizeHighSchool(searchValue);
+        const newSelection = `search_match:${normalizedSearch}`;
+        // Only update if it's different to avoid infinite loops
+        if (selectedHighSchool !== newSelection) {
+          setSelectedHighSchool(newSelection);
+        }
+      } else {
+        // If search is empty, switch to "all" only if we're currently on a search_match
+        // Don't change if user has selected a specific high school
+        if (selectedHighSchool.startsWith("search_match:")) {
+          setSelectedHighSchool("all");
+        }
+      }
+    }, 0); // Use 0ms timeout to defer to next tick
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
+
+  const filteredOptions = useMemo(() => {
+    const normalizedSearch = searchValue
+      ? normalizeHighSchool(searchValue)
+      : "";
+
+    // Filter high schools that match the search
+    const matchingHighSchools = availableHighSchools.filter((hs: string) => {
+      if (!normalizedSearch) return true;
+      const normalizedHS = normalizeHighSchool(hs);
+      return normalizedHS.includes(normalizedSearch);
+    });
+
+    // Build options array
+    const options: { value: string; label: string }[] = [];
+
+    // Always add "All High Schools" as the first option to allow clearing the filter
+    options.push({
+      value: "all",
+      label: "All High Schools",
+    });
+
+    // Add "Search all matching results" as second option if there's a search term
+    if (normalizedSearch) {
+      options.push({
+        value: `search_match:${normalizedSearch}`,
+        label: "Search all matching results",
+      });
+    }
+
+    // Add matching high schools
+    options.push(
+      ...matchingHighSchools.map((hs: string) => ({
+        value: hs,
+        label: hs,
+      }))
+    );
+
+    return options;
+  }, [availableHighSchools, searchValue, normalizeHighSchool]);
+
+  const handleSelect = (optionValue: string) => {
+    if (optionValue === "all") {
+      // Clear search when "All High Schools" is selected
+      setSearchValue("");
+      setSelectedHighSchool("all");
+    } else if (optionValue.startsWith("search_match:")) {
+      // Keep the search value, just update selection
+      setSelectedHighSchool(optionValue);
+    } else {
+      // Specific high school selected - clear search and set selection
+      setSearchValue("");
+      setSelectedHighSchool(optionValue);
+    }
+    setOpen(false);
+  };
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between h-10 px-3 py-2"
+        >
+          <span className="truncate text-left">
+            {selectedHighSchool === "all"
+              ? "All High Schools"
+              : selectedHighSchool.startsWith("search_match:")
+              ? "Search all matching results"
+              : availableHighSchools.find((hs) => hs === selectedHighSchool) ||
+                "All High Schools"}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-[300px] p-0" 
+        align="start"
+      >
+        <div className="flex items-center border-b px-3">
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search high schools..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            />
+        </div>
+        <div className="max-h-60 overflow-y-auto p-1">
+          {filteredOptions.length === 0 ? (
+            <div className="py-6 text-center text-sm">No high school found.</div>
+          ) : (
+            filteredOptions.map((option) => (
+              <div
+                key={option.value}
+                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                onClick={() => handleSelect(option.value)}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    selectedHighSchool === option.value
+                      ? "opacity-100"
+                      : "opacity-0"
+                  )}
+                />
+                {option.label}
+              </div>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Component that combines filters, grade analysis, and results
 function AdmissionInsightsWithFilters() {
   const [insightsData, setInsightsData] = useState<any[]>([]);
@@ -456,6 +643,7 @@ function AdmissionInsightsWithFilters() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedExtracurriculars, setSelectedExtracurriculars] =
     useState<string>("all");
+  const [selectedHighSchool, setSelectedHighSchool] = useState<string>("all");
   const supabase = createClient();
 
   useEffect(() => {
@@ -541,6 +729,31 @@ function AdmissionInsightsWithFilters() {
       }
     }
 
+    if (selectedHighSchool !== "all") {
+      // Normalize function: remove all non-alphabetic characters and convert to lowercase
+      const normalize = (str: string) => {
+        return str.replace(/[^a-zA-Z]/g, "").toLowerCase();
+      };
+      
+      // Check if it's a "search all matching results" selection
+      if (selectedHighSchool.startsWith("search_match:")) {
+        const searchTerm = selectedHighSchool.replace("search_match:", "");
+        filtered = filtered.filter((data) => {
+          if (!data.high_school) return false;
+          const normalizedHighSchool = normalize(data.high_school);
+          return normalizedHighSchool.includes(searchTerm);
+        });
+      } else {
+        // Exact match for specific high school
+        const normalizedSelected = normalize(selectedHighSchool);
+        filtered = filtered.filter((data) => {
+          if (!data.high_school) return false;
+          const normalizedHighSchool = normalize(data.high_school);
+          return normalizedHighSchool === normalizedSelected;
+        });
+      }
+    }
+
     setFilteredData(filtered);
   }, [
     insightsData,
@@ -548,6 +761,7 @@ function AdmissionInsightsWithFilters() {
     selectedProgram,
     selectedStatus,
     selectedExtracurriculars,
+    selectedHighSchool,
   ]);
 
   // Dynamically filter universities based on selected program
@@ -666,6 +880,18 @@ function AdmissionInsightsWithFilters() {
     }
     return "all";
   }, [selectedProgram, availablePrograms]);
+
+  // Get all unique high schools from the data
+  const availableHighSchools = useMemo(() => {
+    const highSchools = new Set<string>();
+    insightsData.forEach((data) => {
+      if (data.high_school && data.high_school.trim() !== "") {
+        highSchools.add(data.high_school);
+      }
+    });
+    return Array.from(highSchools).sort();
+  }, [insightsData]);
+
 
   // Predefined application statuses
   const applicationStatuses = [
@@ -853,6 +1079,21 @@ function AdmissionInsightsWithFilters() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* High School Filter */}
+            {availableHighSchools.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  High School
+                </label>
+                <HighSchoolSearchableSelect
+                  selectedHighSchool={selectedHighSchool}
+                  setSelectedHighSchool={setSelectedHighSchool}
+                  availableHighSchools={availableHighSchools}
+                  normalizeHighSchool={normalizeHighSchool}
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -1077,6 +1318,17 @@ function AdmissionInsightsList({ filteredData }: { filteredData: any[] }) {
             </CardHeader>
 
             <CardContent className="space-y-4">
+              {/* High School */}
+              {data.high_school && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <School className="h-4 w-4 text-indigo-600" />
+                    <h4 className="font-semibold text-sm">High School</h4>
+                  </div>
+                  <p className="text-sm text-gray-700">{data.high_school}</p>
+                </div>
+              )}
+
               {/* Universities & Programs */}
               {data.universities && data.universities.length > 0 && (
                 <div>
