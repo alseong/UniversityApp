@@ -296,8 +296,9 @@ export default function GradeStatistics() {
     }
 
     // Get all unique grades from the filtered data, rounded to nearest whole number
+    // Cap at 100 so grades >100 all merge into the "100+" bucket (prevents duplicate range keys in recharts)
     const roundedGrades = validRecords.map((record) =>
-      Math.round(record.Average!)
+      Math.min(Math.round(record.Average!), 100)
     );
     const uniqueGrades = Array.from(new Set(roundedGrades)).sort(
       (a, b) => a - b
