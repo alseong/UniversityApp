@@ -39,7 +39,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.468.0",
     "next": "14.2.23",
-    "next-mdx-remote": "^5.0.0",
+    "next-mdx-remote": "^6.0.0",
     "next-themes": "^0.2.1",
     "prettier": "^3.3.3",
     "radix-ui": "^1.1.3",
