@@ -4,8 +4,18 @@ import { Comment, Notification } from "@/types/comments";
 
 export function useComments(submissionId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("comments")
+      .select("id", { count: "exact", head: true })
+      .eq("submission_id", submissionId)
+      .then(({ count: n }) => setCount(n ?? 0));
+  }, [submissionId]);
 
   const fetchComments = useCallback(async () => {
     setLoading(true);
@@ -19,12 +29,14 @@ export function useComments(submissionId: string) {
     if (err) {
       setError(err.message);
     } else {
-      setComments((data as Comment[]) ?? []);
+      const fetched = (data as Comment[]) ?? [];
+      setComments(fetched);
+      setCount(fetched.length);
     }
     setLoading(false);
   }, [submissionId]);
 
-  return { comments, loading, error, fetchComments };
+  return { comments, count, loading, error, fetchComments };
 }
 
 export function useNotifications(userId: string | null) {

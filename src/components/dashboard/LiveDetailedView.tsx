@@ -166,8 +166,31 @@ function HighSchoolSearchableSelect({
 }
 
 
+const PAGE_SIZE = 15;
+
 function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; currentUserId: string | null }) {
   const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(new Set());
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filteredData]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredData.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filteredData.length]);
 
   const calculateAverageGrade = (grades: any[], level: string) => {
     const levelGrades = grades.filter((g) => g.level === level && g.grade !== null && g.grade !== "");
@@ -195,9 +218,12 @@ function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; cur
     );
   }
 
+  const visibleData = filteredData.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredData.length;
+
   return (
     <div className="space-y-6">
-      {filteredData.map((data, index) => {
+      {visibleData.map((data, index) => {
         const avgGrade11 = data.avg_grade_11 ? Number(data.avg_grade_11) : calculateAverageGrade(data.grades || [], "grade_11");
         const avgGrade12 = data.avg_grade_12 ? Number(data.avg_grade_12) : calculateAverageGrade(data.grades || [], "grade_12");
         const grade11Courses = (data.grades || []).filter((g: any) => g.level === "grade_11" && g.grade !== null && g.grade !== "");
@@ -323,11 +349,14 @@ function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; cur
           </Card>
         );
       })}
+      <div ref={sentinelRef} className="py-4 text-center text-sm text-muted-foreground">
+        {hasMore ? "Loading more..." : null}
+      </div>
     </div>
   );
 }
 
-export default function Live2026DetailedView({ year }: { year: string }) {
+export default function LiveDetailedView({ year }: { year: string }) {
   const [insightsData, setInsightsData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

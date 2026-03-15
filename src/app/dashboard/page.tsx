@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../../supabase/client";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import GradeStatistics from "@/components/grade-statistics";
@@ -11,7 +11,7 @@ import PopularSchools from "@/components/popular-schools";
 import PopularPrograms from "@/components/popular-programs";
 import ViewToggle from "@/components/dashboard/ViewToggle";
 import HistoricalDetailedView from "@/components/dashboard/HistoricalDetailedView";
-import Live2026DetailedView from "@/components/dashboard/Live2026DetailedView";
+import LiveDetailedView from "@/components/dashboard/LiveDetailedView";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { checkUserHasSufficientData, UserData } from "@/utils/auth";
 import ProfileCompletionModal from "@/components/profile-completion-modal";
@@ -19,9 +19,12 @@ import ProfileCompletionModal from "@/components/profile-completion-modal";
 type View = "summary" | "detailed";
 
 export default function Dashboard() {
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<View>("summary");
+  const [activeView, setActiveView] = useState<View>(
+    searchParams.get("view") === "detailed" ? "detailed" : "summary"
+  );
   const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [hasSufficientData, setHasSufficientData] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -148,7 +151,7 @@ export default function Dashboard() {
 
               {/* Detailed Content */}
               {liveYears.includes(selectedYear) ? (
-                <Live2026DetailedView year={selectedYear} />
+                <LiveDetailedView year={selectedYear} />
               ) : (
                 <HistoricalDetailedView
                   records={allRecords}

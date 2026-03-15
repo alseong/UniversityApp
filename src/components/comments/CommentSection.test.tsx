@@ -30,6 +30,7 @@ const makeComment = (overrides: Partial<Comment> = {}): Comment => ({
 
 const makeHookReturn = (overrides = {}) => ({
   comments: [] as Comment[],
+  count: 0,
   loading: false,
   error: null,
   fetchComments: mockFetchComments,
@@ -95,16 +96,24 @@ describe("CommentSection", () => {
     expect(screen.getByText(/failed to load/i)).toBeInTheDocument();
   });
 
-  it("shows comment count in label when comments exist", async () => {
-    const comments = [makeComment(), makeComment({ id: "c2" })];
-    mockUseComments.mockReturnValue(makeHookReturn({ comments }));
+  it("shows comment count in label before expanding when count is known", () => {
+    mockUseComments.mockReturnValue(makeHookReturn({ count: 2 }));
     render(<CommentSection submissionId="sub-1" currentUserId="user-1" />);
-    await userEvent.click(screen.getByRole("button", { name: /comments/i }));
     expect(screen.getByText(/comments \(2\)/i)).toBeInTheDocument();
   });
 
   it("passes submissionId to useComments hook", () => {
     render(<CommentSection submissionId="unique-sub-id" currentUserId="user-1" />);
     expect(mockUseComments).toHaveBeenCalledWith("unique-sub-id");
+  });
+
+  it("is expanded by default when defaultOpen is true", () => {
+    render(<CommentSection submissionId="sub-1" currentUserId="user-1" defaultOpen />);
+    expect(screen.getByText(/no comments yet/i)).toBeInTheDocument();
+  });
+
+  it("fetches comments immediately when defaultOpen is true", () => {
+    render(<CommentSection submissionId="sub-1" currentUserId="user-1" defaultOpen />);
+    expect(mockFetchComments).toHaveBeenCalledOnce();
   });
 });

@@ -9,12 +9,13 @@ import { CommentThread } from "./CommentThread";
 type Props = {
   submissionId: string;
   currentUserId: string | null;
+  defaultOpen?: boolean;
 };
 
-export function CommentSection({ submissionId, currentUserId }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export function CommentSection({ submissionId, currentUserId, defaultOpen = false }: Props) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
-  const { comments, loading, error, fetchComments } = useComments(submissionId);
+  const { comments, count, loading, error, fetchComments } = useComments(submissionId);
 
   useEffect(() => {
     if (isOpen) fetchComments();
@@ -33,8 +34,7 @@ export function CommentSection({ submissionId, currentUserId }: Props) {
     return result;
   };
 
-  const label =
-    comments.length > 0 ? `Comments (${comments.length})` : "Comments";
+  const label = count > 0 ? `Comments (${count})` : "Comments";
 
   return (
     <div className="border-t border-border mt-4 pt-3">

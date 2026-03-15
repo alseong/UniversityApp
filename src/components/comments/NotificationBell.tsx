@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { useNotifications } from "@/utils/commentHooks";
 import { Notification } from "@/types/comments";
@@ -27,6 +28,7 @@ const notificationLabel = (type: Notification["type"]): string => {
 export function NotificationBell({ userId }: Props) {
   const { notifications, unreadCount, markRead } = useNotifications(userId);
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   if (!userId) return null;
 
@@ -61,7 +63,11 @@ export function NotificationBell({ userId }: Props) {
             notifications.map((n) => (
               <div
                 key={n.id}
-                onClick={() => !n.is_read && markRead(n.id)}
+                onClick={() => {
+                  if (!n.is_read) markRead(n.id);
+                  setOpen(false);
+                  router.push(`/submissions/${n.submission_id}`);
+                }}
                 className={`px-4 py-3 border-b border-border cursor-pointer hover:bg-muted/50 ${
                   !n.is_read ? "bg-blue-50 dark:bg-blue-950/20" : ""
                 }`}

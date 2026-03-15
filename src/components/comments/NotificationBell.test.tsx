@@ -4,6 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { NotificationBell } from "./NotificationBell";
 import { Notification } from "@/types/comments";
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 const mockMarkRead = vi.fn().mockResolvedValue({});
 
 vi.mock("@/utils/commentHooks", () => ({
@@ -35,6 +40,7 @@ const makeHookReturn = (overrides = {}) => ({
 beforeEach(() => {
   mockUseNotifications.mockReturnValue(makeHookReturn());
   mockMarkRead.mockClear();
+  mockPush.mockClear();
 });
 
 describe("NotificationBell", () => {
@@ -122,5 +128,14 @@ describe("NotificationBell", () => {
   it("passes userId to useNotifications hook", () => {
     render(<NotificationBell userId="specific-user-id" />);
     expect(mockUseNotifications).toHaveBeenCalledWith("specific-user-id");
+  });
+
+  it("navigates to dashboard detailed view with submission id when notification is clicked", async () => {
+    const notifications = [makeNotification({ submission_id: "sub-abc" })];
+    mockUseNotifications.mockReturnValue(makeHookReturn({ notifications, unreadCount: 1 }));
+    render(<NotificationBell userId="user-1" />);
+    await userEvent.click(screen.getByRole("button", { name: /notifications/i }));
+    await userEvent.click(screen.getByText(/commented on your submission/i));
+    expect(mockPush).toHaveBeenCalledWith("/submissions/sub-abc");
   });
 });
