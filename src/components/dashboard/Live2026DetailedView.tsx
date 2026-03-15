@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Search, AlertCircle, Filter, TrendingUp, Users, GraduationCap, BookOpen, Award, ChevronDown, ChevronUp, School } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CommentSection } from "@/components/comments/CommentSection";
 
 const normalizeHighSchool = (str: string) =>
   str.replace(/[^a-zA-Z]/g, "").toLowerCase();
@@ -165,7 +166,7 @@ function HighSchoolSearchableSelect({
 }
 
 
-function RecordsList({ filteredData }: { filteredData: any[] }) {
+function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; currentUserId: string | null }) {
   const [expandedAchievements, setExpandedAchievements] = useState<Set<string>>(new Set());
 
   const calculateAverageGrade = (grades: any[], level: string) => {
@@ -312,6 +313,12 @@ function RecordsList({ filteredData }: { filteredData: any[] }) {
                   )}
                 </div>
               </div>
+              {data.id && (
+                <CommentSection
+                  submissionId={data.id}
+                  currentUserId={currentUserId}
+                />
+              )}
             </CardContent>
           </Card>
         );
@@ -330,7 +337,14 @@ export default function Live2026DetailedView({ year }: { year: string }) {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedExtracurriculars, setSelectedExtracurriculars] = useState("all");
   const [selectedHighSchool, setSelectedHighSchool] = useState("all");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id ?? null);
+    });
+  }, []);
 
   useEffect(() => {
     const fetch = async () => {
@@ -340,7 +354,8 @@ export default function Live2026DetailedView({ year }: { year: string }) {
           .from("admissions_data")
           .select("*")
           .ilike("university_attendance", `%${year}%`)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .limit(10000);
         if (err) throw err;
         setInsightsData(data || []);
         setFilteredData(data || []);
@@ -536,7 +551,7 @@ export default function Live2026DetailedView({ year }: { year: string }) {
         </CardContent>
       </Card>
 
-      <RecordsList filteredData={filteredData} />
+      <RecordsList filteredData={filteredData} currentUserId={currentUserId} />
     </div>
   );
 }

@@ -17,7 +17,7 @@ export const checkUserHasSufficientData = async (userId: string): Promise<{
       .from("admissions_data")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (!admissionData) {
       return { hasSufficientData: false, userData: null };

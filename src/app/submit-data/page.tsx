@@ -125,7 +125,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         .from("admissions_data")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (admissionData) {
         // Load data from the simplified structure
@@ -509,7 +509,7 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
         .from("admissions_data")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       let result;
       if (existingData) {
