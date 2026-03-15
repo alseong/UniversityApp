@@ -9,16 +9,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, ExternalLink } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { FilterState } from "@/types/dashboard";
-import Link from "next/link";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { createDataFilter } from "@/utils/filters";
 import { calculateGradeStats } from "@/utils/statistics";
 import { checkUserHasSufficientData, UserData } from "@/utils/auth";
 import ProfileCompletionModal from "./profile-completion-modal";
 import { createClient } from "../../supabase/client";
+import { transformSupabaseToAdmissionRecords } from "@/utils/supabaseTransform";
+import { formatStatusLabel } from "@/utils/supabaseNormalize";
+import { AdmissionRecord } from "@/types/dashboard";
 import {
   BarChart,
   Bar,
@@ -40,10 +41,11 @@ export default function GradeStatistics() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [liveRecords, setLiveRecords] = useState<AdmissionRecord[]>([]);
 
-  // Check user data on component mount
+  // Check user data and fetch 2026 live records on mount
   useEffect(() => {
-    const checkUser = async () => {
+    const init = async () => {
       const supabase = createClient();
       const {
         data: { user },
@@ -55,20 +57,56 @@ export default function GradeStatistics() {
         setHasSufficientData(hasData);
         setUserData(data);
       }
+
+      const { data: supabaseData } = await supabase
+        .from("admissions_data")
+        .select("*")
+        .or("university_attendance.ilike.%2026%,university_attendance.ilike.%2027%");
+
+      if (supabaseData) {
+        setLiveRecords(transformSupabaseToAdmissionRecords(supabaseData));
+      }
+
       setLoading(false);
     };
-    checkUser();
+    init();
   }, []);
 
   const {
-    allRecords,
+    allRecords: jsonRecords,
     schools,
     programs,
-    statuses,
-    attendingYears,
+    statuses: jsonStatuses,
+    attendingYears: jsonAttendingYears,
     schoolCounts,
     programCounts,
   } = useProcessedAdmissionData();
+
+  const normalizeJsonStatus = (status: string) =>
+    status === "Accepted" ? "Offer" : status;
+
+  const allRecords = useMemo(
+    () => [
+      ...jsonRecords.map((r) => ({ ...r, Status: normalizeJsonStatus(r.Status) })),
+      ...liveRecords.map((r) => ({ ...r, Status: normalizeJsonStatus(r.Status) })),
+    ],
+    [jsonRecords, liveRecords]
+  );
+
+  const attendingYears = useMemo(() => {
+    const liveYears = Array.from(
+      new Set(liveRecords.map((r) => r["Attending Year"]).filter(Boolean))
+    ).sort();
+    const combined = new Set([...jsonAttendingYears, ...liveYears]);
+    return ["All", ...Array.from(combined).filter((y) => y !== "All").sort((a, b) => Number(b) - Number(a))];
+  }, [jsonAttendingYears, liveRecords]);
+
+  const statuses = useMemo(() => {
+    const liveStatuses = Array.from(new Set(liveRecords.map((r) => normalizeJsonStatus(r.Status)).filter(Boolean)));
+    const normalizedJsonStatuses = jsonStatuses.map(normalizeJsonStatus);
+    const combined = new Set([...normalizedJsonStatuses, ...liveStatuses]);
+    return ["All", ...Array.from(combined).filter((s) => s !== "All").sort()];
+  }, [jsonStatuses, liveRecords]);
 
   // Dynamically filter programs based on selected school
   const availablePrograms = useMemo(() => {
@@ -268,20 +306,22 @@ export default function GradeStatistics() {
     // Create a grade distribution object
     const gradeCounts: {
       [grade: number]: {
-        accepted: number;
+        offer: number;
         waitlisted: number;
         rejected: number;
         deferred: number;
+        applied: number;
       };
     } = {};
 
     // Initialize all grades with zero counts
     uniqueGrades.forEach((grade) => {
       gradeCounts[grade] = {
-        accepted: 0,
+        offer: 0,
         waitlisted: 0,
         rejected: 0,
         deferred: 0,
+        applied: 0,
       };
     });
 
@@ -291,14 +331,16 @@ export default function GradeStatistics() {
       const status = record.Status.toLowerCase();
 
       if (gradeCounts[roundedGrade]) {
-        if (status === "accepted") {
-          gradeCounts[roundedGrade].accepted++;
+        if (status === "accepted" || status === "offer") {
+          gradeCounts[roundedGrade].offer++;
         } else if (status === "waitlisted") {
           gradeCounts[roundedGrade].waitlisted++;
         } else if (status === "rejected") {
           gradeCounts[roundedGrade].rejected++;
         } else if (status === "deferred") {
           gradeCounts[roundedGrade].deferred++;
+        } else if (status === "applied") {
+          gradeCounts[roundedGrade].applied++;
         }
       }
     });
@@ -306,21 +348,23 @@ export default function GradeStatistics() {
     // Convert to array format for the chart
     return uniqueGrades.map((grade) => ({
       range: grade >= 100 ? "100+" : grade.toString(),
-      accepted: gradeCounts[grade].accepted,
+      offer: gradeCounts[grade].offer,
       waitlisted: gradeCounts[grade].waitlisted,
       rejected: gradeCounts[grade].rejected,
       deferred: gradeCounts[grade].deferred,
+      applied: gradeCounts[grade].applied,
       total:
-        gradeCounts[grade].accepted +
+        gradeCounts[grade].offer +
         gradeCounts[grade].waitlisted +
         gradeCounts[grade].rejected +
-        gradeCounts[grade].deferred,
+        gradeCounts[grade].deferred +
+        gradeCounts[grade].applied,
     }));
   }, [filteredData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "accepted":
+      case "offer":
         return "#10b981"; // green
       case "waitlisted":
         return "#f59e0b"; // amber
@@ -328,6 +372,8 @@ export default function GradeStatistics() {
         return "#ef4444"; // red
       case "deferred":
         return "#8b5cf6"; // purple
+      case "applied":
+        return "#3b82f6"; // blue
       default:
         return "#6b7280"; // gray
     }
@@ -346,14 +392,6 @@ export default function GradeStatistics() {
               Average and median grades with distribution by acceptance status
             </CardDescription>
           </div>
-          <Link href="/2026-results" className="block">
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full sm:w-auto"
-              size="sm"
-            >
-              View 2026 Insights
-            </Button>
-          </Link>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -390,7 +428,7 @@ export default function GradeStatistics() {
               searchPlaceholder="Search statuses..."
               options={statuses.map((status) => ({
                 value: status,
-                label: status,
+                label: formatStatusLabel(status),
               }))}
             />
           </div>
@@ -459,41 +497,24 @@ export default function GradeStatistics() {
                   <Tooltip
                     formatter={(value, name) => [
                       value,
-                      name === "accepted"
-                        ? "Accepted"
+                      name === "offer"
+                        ? "Offer"
                         : name === "waitlisted"
                           ? "Waitlisted"
                           : name === "rejected"
                             ? "Rejected"
                             : name === "deferred"
                               ? "Deferred"
-                              : name,
+                              : name === "applied"
+                                ? "Applied"
+                                : name,
                     ]}
                   />
-                  <Bar
-                    dataKey="accepted"
-                    stackId="a"
-                    fill={getStatusColor("accepted")}
-                    name="Accepted"
-                  />
-                  <Bar
-                    dataKey="waitlisted"
-                    stackId="a"
-                    fill={getStatusColor("waitlisted")}
-                    name="Waitlisted"
-                  />
-                  <Bar
-                    dataKey="rejected"
-                    stackId="a"
-                    fill={getStatusColor("rejected")}
-                    name="Rejected"
-                  />
-                  <Bar
-                    dataKey="deferred"
-                    stackId="a"
-                    fill={getStatusColor("deferred")}
-                    name="Deferred"
-                  />
+                  <Bar dataKey="offer" stackId="a" fill={getStatusColor("offer")} name="Offer" />
+                  <Bar dataKey="waitlisted" stackId="a" fill={getStatusColor("waitlisted")} name="Waitlisted" />
+                  <Bar dataKey="rejected" stackId="a" fill={getStatusColor("rejected")} name="Rejected" />
+                  <Bar dataKey="deferred" stackId="a" fill={getStatusColor("deferred")} name="Deferred" />
+                  <Bar dataKey="applied" stackId="a" fill={getStatusColor("applied")} name="Applied" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -503,9 +524,9 @@ export default function GradeStatistics() {
               <div className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded"
-                  style={{ backgroundColor: getStatusColor("accepted") }}
+                  style={{ backgroundColor: getStatusColor("offer") }}
                 ></div>
-                <span>Accepted</span>
+                <span>Offer</span>
               </div>
               <div className="flex items-center gap-2">
                 <div
@@ -527,6 +548,13 @@ export default function GradeStatistics() {
                   style={{ backgroundColor: getStatusColor("deferred") }}
                 ></div>
                 <span>Deferred</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: getStatusColor("applied") }}
+                ></div>
+                <span>Applied</span>
               </div>
             </div>
           </div>

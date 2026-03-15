@@ -29,7 +29,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../supabase/client";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import { getUniversityNames, getProgramNames } from "@/utils/university-data";
 
@@ -53,7 +53,6 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
 
   const [universities, setUniversities] = useState<University[]>([
@@ -601,7 +600,9 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2027_onwards">2027 onwards</SelectItem>
+                    <SelectItem value="fall_2027">Fall 2027</SelectItem>
+                    <SelectItem value="spring_2027">Spring 2027</SelectItem>
+                    <SelectItem value="winter_2027">Winter 2027</SelectItem>
                     <SelectItem value="fall_2026">Fall 2026</SelectItem>
                     <SelectItem value="spring_2026">Spring 2026</SelectItem>
                     <SelectItem value="winter_2026">Winter 2026</SelectItem>
@@ -754,16 +755,16 @@ export default function SubmitData({ searchParams }: { searchParams?: any }) {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="received_offer_and_accepted">
-                                    Received Offer and Accepted
+                                    Offer and Accepted
                                   </SelectItem>
                                   <SelectItem value="received_offer_and_rejected">
-                                    Received Offer and Rejected
+                                    Offer and Rejected
                                   </SelectItem>
                                   <SelectItem value="accepted">
-                                    Accepted
+                                    Offer
                                   </SelectItem>
                                   <SelectItem value="early_acceptance">
-                                    Early Acceptance
+                                    Early Offer
                                   </SelectItem>
                                   <SelectItem value="waitlisted">
                                     Waitlisted

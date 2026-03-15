@@ -1,34 +1,31 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ArrowRight, BarChart3, TrendingUp, Users, Linkedin } from "lucide-react";
-import { useState, useEffect } from "react";
-import { createClient } from "../../../supabase/client";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "../../../supabase/client";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import GradeStatistics from "@/components/grade-statistics";
 import CompetitivePrograms from "@/components/competitive-programs";
 import CompetitiveUniversities from "@/components/competitive-universities";
 import PopularSchools from "@/components/popular-schools";
 import PopularPrograms from "@/components/popular-programs";
-import Link from "next/link";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import ViewToggle from "@/components/dashboard/ViewToggle";
+import HistoricalDetailedView from "@/components/dashboard/HistoricalDetailedView";
+import Live2026DetailedView from "@/components/dashboard/Live2026DetailedView";
+import { useProcessedAdmissionData } from "@/utils/data";
+import { checkUserHasSufficientData, UserData } from "@/utils/auth";
+import ProfileCompletionModal from "@/components/profile-completion-modal";
+
+type View = "summary" | "detailed";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<View>("summary");
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [hasSufficientData, setHasSufficientData] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,10 +39,40 @@ export default function Dashboard() {
         return;
       }
       setUser(user);
+      const { hasSufficientData: hasData, userData: data } =
+        await checkUserHasSufficientData(user.id);
+      setHasSufficientData(hasData);
+      setUserData(data);
       setLoading(false);
     };
     checkUser();
   }, [router]);
+
+  const handleViewChange = (view: View) => {
+    if (view === "detailed" && !hasSufficientData) {
+      setShowModal(true);
+      return;
+    }
+    setActiveView(view);
+  };
+
+  const { allRecords, attendingYears } = useProcessedAdmissionData();
+
+  // Historical years sorted descending (excluding "All")
+  const historicalYears = useMemo(
+    () =>
+      attendingYears
+        .filter((y) => y !== "All")
+        .sort((a, b) => Number(b) - Number(a)),
+    [attendingYears]
+  );
+
+  const liveYears = ["2027", "2026"];
+
+  const yearTabs = useMemo(
+    () => [...liveYears, ...historicalYears],
+    [historicalYears]
+  );
 
   if (loading) {
     return (
@@ -53,7 +80,7 @@ export default function Dashboard() {
         <DashboardNavbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
             <p>Loading...</p>
           </div>
         </div>
@@ -64,121 +91,72 @@ export default function Dashboard() {
   return (
     <>
       <DashboardNavbar />
+      <ProfileCompletionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        userData={userData}
+      />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
-          {/* Coaching Consultation Card - Full Width */}
-          {/* <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 mb-8">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div className="flex-1">
-                  <CardTitle className="text-xl sm:text-2xl text-blue-800">
-                    Coaching/Tutoring Consultation
-                  </CardTitle>
-                  <CardDescription className="text-blue-700 text-base sm:text-lg">
-                    Would love to learn more about the biggest concerns you might have when it comes to preparing for university.
-                  </CardDescription>
-                </div>
-                <Link
-                  href="https://calendly.com/minjun6251/coaching-consultation"
-                  className="w-full sm:w-auto"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base">
-                    Book Consultation
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto text-left font-semibold text-lg text-blue-800 hover:bg-transparent"
-                  >
-                    What We Can Help With
-                    <ChevronDown className="w-5 h-5 transition-transform duration-200" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-6 mt-3 pl-4 border-l-2 border-blue-200">
-                  <div className="space-y-4">
-                    <p className="text-blue-700 mb-3">
-                      Once I better understand your major concerns, I'll plan out our coaching sessions and provide you pricing details (options available from 1 time session to recurring sessions).
-                    </p>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-blue-700">
-                          Application coaching
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-blue-700">
-                          Career path exploration & planning
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-blue-700">
-                          Tutoring (Math, Sciences)
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <p className="text-blue-700">
-                          Personal projects to help with application
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-blue-700 text-sm mt-3 italic">
-                      Note: As I am a CS grad from UWaterloo, I may have limited knowledge on fields outside CS, Math and Engineering.
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="https://www.linkedin.com/in/minjun1998/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-800 text-sm font-medium"
-                      >
-                        <Linkedin className="h-4 w-4" />
-                        Learn more about me on LinkedIn
-                      </Link>
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </CardContent>
-          </Card> */}
-
-          {/* Header Section */}
           <header className="mb-8">
-            <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-            <p className="text-gray-600">
-              Welcome back! Here's an overview of admission data and insights
-              from students across Canada.
+            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+            <p className="text-muted-foreground mb-4">
+              Admission data and insights from students across Canada.
             </p>
+            <ViewToggle activeView={activeView} onChange={handleViewChange} />
           </header>
 
-          {/* Dashboard Cards */}
-          <div className="space-y-6 mb-8">
-            {/* Grade Analysis - Full Width */}
-            <GradeStatistics />
-
-            {/* First Row - 3 widgets */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <CompetitivePrograms />
-              <CompetitiveUniversities />
-              <PopularSchools />
-            </div>
-
-            {/* Second Row - 1 widget */}
-            <div className="grid grid-cols-1 gap-6">
+          {activeView === "summary" ? (
+            <div className="space-y-6">
+              <GradeStatistics />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <CompetitivePrograms />
+                <CompetitiveUniversities />
+                <PopularSchools />
+              </div>
               <PopularPrograms />
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Year Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {yearTabs.map((year) => {
+                  const isDisabled = !liveYears.includes(year);
+                  return (
+                    <button
+                      key={year}
+                      onClick={() => !isDisabled && setSelectedYear(year)}
+                      disabled={isDisabled}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                        isDisabled
+                          ? "bg-muted text-muted-foreground border-border opacity-40 cursor-not-allowed"
+                          : selectedYear === year
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-background text-muted-foreground border-border hover:text-foreground"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {year}
+                        {liveYears.includes(year) && (
+                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Detailed Content */}
+              {liveYears.includes(selectedYear) ? (
+                <Live2026DetailedView year={selectedYear} />
+              ) : (
+                <HistoricalDetailedView
+                  records={allRecords}
+                  year={selectedYear}
+                />
+              )}
+            </div>
+          )}
         </div>
       </main>
     </>

@@ -1,0 +1,34 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import ViewToggle from "./ViewToggle";
+
+describe("ViewToggle", () => {
+  it("renders Summary and Detailed options", () => {
+    render(<ViewToggle activeView="summary" onChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /summary/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /detailed/i })).toBeInTheDocument();
+  });
+
+  it("calls onChange with 'detailed' when Detailed is clicked", async () => {
+    const onChange = vi.fn();
+    render(<ViewToggle activeView="summary" onChange={onChange} />);
+    await userEvent.click(screen.getByRole("button", { name: /detailed/i }));
+    expect(onChange).toHaveBeenCalledWith("detailed");
+  });
+
+  it("calls onChange with 'summary' when Summary is clicked", async () => {
+    const onChange = vi.fn();
+    render(<ViewToggle activeView="detailed" onChange={onChange} />);
+    await userEvent.click(screen.getByRole("button", { name: /summary/i }));
+    expect(onChange).toHaveBeenCalledWith("summary");
+  });
+
+  it("marks the active view as selected", () => {
+    render(<ViewToggle activeView="detailed" onChange={vi.fn()} />);
+    const detailedBtn = screen.getByRole("button", { name: /detailed/i });
+    const summaryBtn = screen.getByRole("button", { name: /summary/i });
+    expect(detailedBtn).toHaveAttribute("aria-pressed", "true");
+    expect(summaryBtn).toHaveAttribute("aria-pressed", "false");
+  });
+});
