@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
+import { NotificationBell } from "./comments/NotificationBell";
 
 export default function DashboardNavbar() {
   const supabase = createClient();
@@ -85,6 +86,7 @@ export default function DashboardNavbar() {
         </Link>
 
         <div className="flex gap-4 items-center">
+          <NotificationBell userId={user?.id ?? null} />
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link
