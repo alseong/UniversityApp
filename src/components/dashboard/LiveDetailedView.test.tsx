@@ -52,27 +52,50 @@ vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
 beforeEach(() => {
   admissionsChain.limit.mockResolvedValue({ data: mockData, error: null });
+  admissionsChain.ilike.mockClear();
   mockObserve.mockClear();
   mockDisconnect.mockClear();
 });
 
 describe("LiveDetailedView", () => {
   it("renders records after loading", async () => {
-    render(<LiveDetailedView year="2026" />);
+    render(<LiveDetailedView allRecords={[]} liveYears={["2026", "2027"]} historicalYears={[]} />);
     await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
     expect(screen.getByText("McGill")).toBeInTheDocument();
   });
 
   it("filters records by selected year", async () => {
-    render(<LiveDetailedView year="2027" />);
+    render(<LiveDetailedView allRecords={[]} liveYears={["2027", "2026"]} historicalYears={[]} />);
     await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByText("Filters"));
+    await userEvent.click(screen.getByText("2027"));
+
     expect(admissionsChain.ilike).toHaveBeenCalledWith("university_attendance", "%2027%");
+  });
+
+  it("defaults to the last live year and applies ilike filter", async () => {
+    render(<LiveDetailedView allRecords={[]} liveYears={["2027", "2026"]} historicalYears={[]} />);
+    await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
+    expect(admissionsChain.ilike).toHaveBeenCalledWith("university_attendance", "%2026%");
+  });
+
+  it("disables historical year tabs", async () => {
+    render(<LiveDetailedView allRecords={[]} liveYears={["2027", "2026"]} historicalYears={["2025", "2024"]} />);
+    await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByText("Filters"));
+
+    expect(screen.getByRole("button", { name: "2025" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "2024" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /2027/ })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /2026/ })).not.toBeDisabled();
   });
 
   it("renders only PAGE_SIZE records initially when there are more", async () => {
     const largeData = makeRecords(25);
     admissionsChain.limit.mockResolvedValue({ data: largeData, error: null });
-    render(<LiveDetailedView year="2026" />);
+    render(<LiveDetailedView allRecords={[]} liveYears={["2026", "2027"]} historicalYears={[]} />);
     await waitFor(() =>
       expect(screen.getByText("University 0")).toBeInTheDocument()
     );
@@ -88,11 +111,14 @@ describe("LiveDetailedView", () => {
     largeData[0].universities[0].name = "UofT";
     admissionsChain.limit.mockResolvedValue({ data: largeData, error: null });
 
-    render(<LiveDetailedView year="2026" />);
+    render(<LiveDetailedView allRecords={[]} liveYears={["2026", "2027"]} historicalYears={[]} />);
     await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
 
     // University 15 is beyond page 1
     expect(screen.queryByText("University 15")).not.toBeInTheDocument();
+
+    // Open filters panel first (collapsed by default)
+    await userEvent.click(screen.getByText("Filters"));
 
     // Apply a university filter — filteredData shrinks to 1, visible resets
     await userEvent.click(screen.getAllByRole("combobox")[0]);

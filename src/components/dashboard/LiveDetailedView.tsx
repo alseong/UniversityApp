@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "../../../supabase/client";
 import { formatAttendanceYear } from "@/utils/formatAttendanceYear";
+import HistoricalDetailedView from "./HistoricalDetailedView";
+import { AdmissionRecord } from "@/types/dashboard";
+import { applyHistoricalFilters, HistoricalDetailedFilter } from "@/utils/historicalFilters";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -357,7 +360,17 @@ function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; cur
   );
 }
 
-export default function LiveDetailedView({ year }: { year: string }) {
+type Props = {
+  allRecords: AdmissionRecord[];
+  liveYears: string[];
+  historicalYears: string[];
+};
+
+export default function LiveDetailedView({ allRecords, liveYears, historicalYears }: Props) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(
+    () => liveYears[liveYears.length - 1] ?? liveYears[0] ?? ""
+  );
   const [insightsData, setInsightsData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -367,6 +380,11 @@ export default function LiveDetailedView({ year }: { year: string }) {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedExtracurriculars, setSelectedExtracurriculars] = useState("all");
   const [selectedHighSchool, setSelectedHighSchool] = useState("all");
+  const [historicalFilters, setHistoricalFilters] = useState<HistoricalDetailedFilter>({
+    school: "All",
+    program: "All",
+    status: "All",
+  });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -383,8 +401,8 @@ export default function LiveDetailedView({ year }: { year: string }) {
         const { data, error: err } = await supabase
           .from("admissions_data")
           .select("*")
-          .ilike("university_attendance", `%${year}%`)
           .order("created_at", { ascending: false })
+          .ilike("university_attendance", `%${selectedYear}%`)
           .limit(10000);
         if (err) throw err;
         setInsightsData(data || []);
@@ -396,7 +414,43 @@ export default function LiveDetailedView({ year }: { year: string }) {
       }
     };
     fetch();
-  }, [year]);
+  }, [selectedYear]);
+
+  useEffect(() => {
+    setHistoricalFilters({ school: "All", program: "All", status: "All" });
+  }, [selectedYear]);
+
+  const isLiveYear = liveYears.includes(selectedYear);
+  const isHistoricalYear = !isLiveYear;
+
+  const historicalFilteredRecords = useMemo(() => {
+    if (!isHistoricalYear) return [];
+    return applyHistoricalFilters(allRecords, selectedYear, historicalFilters);
+  }, [allRecords, selectedYear, historicalFilters, isHistoricalYear]);
+
+  const availableHistoricalSchools = useMemo(() => {
+    if (!isHistoricalYear) return [];
+    const yearRecords = allRecords.filter((r) => r["Attending Year"] === selectedYear);
+    const schools = new Set<string>();
+    yearRecords.forEach((r) => r.School.forEach((s) => schools.add(s)));
+    return ["All", ...Array.from(schools).sort()];
+  }, [allRecords, selectedYear, isHistoricalYear]);
+
+  const availableHistoricalPrograms = useMemo(() => {
+    if (!isHistoricalYear) return [];
+    const yearRecords = allRecords.filter((r) => r["Attending Year"] === selectedYear);
+    const programs = new Set<string>();
+    yearRecords.forEach((r) => r.Program.forEach((p) => programs.add(p)));
+    return ["All", ...Array.from(programs).sort()];
+  }, [allRecords, selectedYear, isHistoricalYear]);
+
+  const availableHistoricalStatuses = useMemo(() => {
+    if (!isHistoricalYear) return [];
+    const yearRecords = allRecords.filter((r) => r["Attending Year"] === selectedYear);
+    const statuses = new Set<string>();
+    yearRecords.forEach((r) => statuses.add(r.Status));
+    return ["All", ...Array.from(statuses).sort()];
+  }, [allRecords, selectedYear, isHistoricalYear]);
 
   useEffect(() => {
     let filtered = insightsData.filter((data) => {
@@ -492,15 +546,53 @@ export default function LiveDetailedView({ year }: { year: string }) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setFiltersOpen((prev) => !prev)}
+        >
           <CardTitle className="flex items-center gap-2 text-base">
             <Filter className="h-4 w-4 text-blue-600" />
             Filters
+            {filtersOpen ? (
+              <ChevronUp className="h-4 w-4 ml-auto text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 ml-auto text-muted-foreground" />
+            )}
           </CardTitle>
         </CardHeader>
+        {filtersOpen && (
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-            {availableUniversities.length > 0 && (
+            <div className="w-full">
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">Year</label>
+              <div className="flex flex-wrap gap-2">
+                {[...liveYears, ...historicalYears].map((year) => {
+                  const isHistorical = !liveYears.includes(year);
+                  return (
+                    <button
+                      key={year}
+                      onClick={() => setSelectedYear(year)}
+                      disabled={isHistorical}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                        isHistorical
+                          ? "opacity-40 cursor-not-allowed bg-muted text-muted-foreground border-border"
+                          : selectedYear === year
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-background text-muted-foreground border-border hover:text-foreground"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {year}
+                        {liveYears.includes(year) && (
+                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {isLiveYear && availableUniversities.length > 0 && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">University</label>
                 <SearchableSelect
@@ -521,7 +613,7 @@ export default function LiveDetailedView({ year }: { year: string }) {
               </div>
             )}
 
-            {availablePrograms.length > 0 && (
+            {isLiveYear && availablePrograms.length > 0 && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Program</label>
                 <SearchableSelect
@@ -542,32 +634,36 @@ export default function LiveDetailedView({ year }: { year: string }) {
               </div>
             )}
 
-            <div className="flex-1 min-w-[160px]">
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">Application Status</label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto">
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {APPLICATION_STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {isLiveYear && (
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">Application Status</label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {APPLICATION_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            <div className="flex-1 min-w-[160px]">
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">Extracurriculars</label>
-              <Select value={selectedExtracurriculars} onValueChange={setSelectedExtracurriculars}>
-                <SelectTrigger><SelectValue placeholder="All Records" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Records</SelectItem>
-                  <SelectItem value="has">Has Extracurriculars</SelectItem>
-                  <SelectItem value="none">No Extracurriculars</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {isLiveYear && (
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">Extracurriculars</label>
+                <Select value={selectedExtracurriculars} onValueChange={setSelectedExtracurriculars}>
+                  <SelectTrigger><SelectValue placeholder="All Records" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Records</SelectItem>
+                    <SelectItem value="has">Has Extracurriculars</SelectItem>
+                    <SelectItem value="none">No Extracurriculars</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {availableHighSchools.length > 0 && (
+            {isLiveYear && availableHighSchools.length > 0 && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">High School</label>
                 <HighSchoolSearchableSelect
@@ -577,11 +673,59 @@ export default function LiveDetailedView({ year }: { year: string }) {
                 />
               </div>
             )}
+
+            {isHistoricalYear && availableHistoricalSchools.length > 1 && (
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">School</label>
+                <SearchableSelect
+                  value={historicalFilters.school}
+                  onValueChange={(v) => setHistoricalFilters((f) => ({ ...f, school: v }))}
+                  placeholder="All Schools"
+                  searchPlaceholder="Search schools..."
+                  options={availableHistoricalSchools.map((s) => ({ value: s, label: s }))}
+                />
+              </div>
+            )}
+
+            {isHistoricalYear && availableHistoricalPrograms.length > 1 && (
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">Program</label>
+                <SearchableSelect
+                  value={historicalFilters.program}
+                  onValueChange={(v) => setHistoricalFilters((f) => ({ ...f, program: v }))}
+                  placeholder="All Programs"
+                  searchPlaceholder="Search programs..."
+                  options={availableHistoricalPrograms.map((p) => ({ value: p, label: p }))}
+                />
+              </div>
+            )}
+
+            {isHistoricalYear && availableHistoricalStatuses.length > 1 && (
+              <div className="flex-1 min-w-[160px]">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">Status</label>
+                <Select
+                  value={historicalFilters.status}
+                  onValueChange={(v) => setHistoricalFilters((f) => ({ ...f, status: v }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                  <SelectContent>
+                    {availableHistoricalStatuses.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </CardContent>
+        )}
       </Card>
 
-      <RecordsList filteredData={filteredData} currentUserId={currentUserId} />
+      {isLiveYear ? (
+        <RecordsList filteredData={filteredData} currentUserId={currentUserId} />
+      ) : (
+        <HistoricalDetailedView records={historicalFilteredRecords} />
+      )}
     </div>
   );
 }

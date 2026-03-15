@@ -4,31 +4,31 @@ import userEvent from "@testing-library/user-event";
 import ViewToggle from "./ViewToggle";
 
 describe("ViewToggle", () => {
-  it("renders Summary and Detailed options", () => {
+  it("renders Student Submissions and Analytics options", () => {
     render(<ViewToggle activeView="summary" onChange={vi.fn()} />);
-    expect(screen.getByRole("button", { name: /summary/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /detailed/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /student submissions/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /analytics/i })).toBeInTheDocument();
   });
 
-  it("calls onChange with 'detailed' when Detailed is clicked", async () => {
+  it("calls onChange with 'detailed' when Student Submissions is clicked", async () => {
     const onChange = vi.fn();
     render(<ViewToggle activeView="summary" onChange={onChange} />);
-    await userEvent.click(screen.getByRole("button", { name: /detailed/i }));
+    await userEvent.click(screen.getByRole("button", { name: /student submissions/i }));
     expect(onChange).toHaveBeenCalledWith("detailed");
   });
 
   it("calls onChange with 'summary' when Summary is clicked", async () => {
     const onChange = vi.fn();
     render(<ViewToggle activeView="detailed" onChange={onChange} />);
-    await userEvent.click(screen.getByRole("button", { name: /summary/i }));
+    await userEvent.click(screen.getByRole("button", { name: /analytics/i }));
     expect(onChange).toHaveBeenCalledWith("summary");
   });
 
   it("marks the active view as selected", () => {
     render(<ViewToggle activeView="detailed" onChange={vi.fn()} />);
-    const detailedBtn = screen.getByRole("button", { name: /detailed/i });
-    const summaryBtn = screen.getByRole("button", { name: /summary/i });
-    expect(detailedBtn).toHaveAttribute("aria-pressed", "true");
+    const submissionsBtn = screen.getByRole("button", { name: /student submissions/i });
+    const summaryBtn = screen.getByRole("button", { name: /analytics/i });
+    expect(submissionsBtn).toHaveAttribute("aria-pressed", "true");
     expect(summaryBtn).toHaveAttribute("aria-pressed", "false");
   });
 });

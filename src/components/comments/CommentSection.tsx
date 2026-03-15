@@ -40,16 +40,16 @@ export function CommentSection({ submissionId, currentUserId, defaultOpen = fals
     <div className="border-t border-border mt-4 pt-3">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200"
         aria-expanded={isOpen}
         aria-controls={`comments-${submissionId}`}
       >
         <MessageSquare className="w-4 h-4" />
         <span>{label}</span>
         {isOpen ? (
-          <ChevronUp className="w-3 h-3 ml-auto" />
+          <ChevronUp className="w-3 h-3 ml-1" />
         ) : (
-          <ChevronDown className="w-3 h-3 ml-auto" />
+          <ChevronDown className="w-3 h-3 ml-1" />
         )}
       </button>
 
