@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "../../../supabase/client";
+import { formatAttendanceYear } from "@/utils/formatAttendanceYear";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -236,7 +237,7 @@ function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; cur
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg">{data.university_attendance || "University Student"}</CardTitle>
+                  <CardTitle className="text-lg">{formatAttendanceYear(data.university_attendance || "") || "University Student"}</CardTitle>
                 </div>
                 <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                   User: {data.user_id?.slice(-6) || "Unknown"}

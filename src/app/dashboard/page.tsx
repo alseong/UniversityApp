@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../../supabase/client";
 import DashboardNavbar from "@/components/dashboard-navbar";
@@ -18,7 +18,7 @@ import ProfileCompletionModal from "@/components/profile-completion-modal";
 
 type View = "summary" | "detailed";
 
-export default function Dashboard() {
+function Dashboard() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,6 @@ export default function Dashboard() {
 
   const { allRecords, attendingYears } = useProcessedAdmissionData();
 
-  // Historical years sorted descending (excluding "All")
   const historicalYears = useMemo(
     () =>
       attendingYears
@@ -163,5 +162,13 @@ export default function Dashboard() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense>
+      <Dashboard />
+    </Suspense>
   );
 }

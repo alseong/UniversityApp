@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "../../../../supabase/server";
+import { formatAttendanceYear } from "@/utils/formatAttendanceYear";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -99,7 +100,7 @@ export default async function SubmissionPage({ params }: Props) {
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-blue-600" />
                 <CardTitle className="text-lg">
-                  {record.university_attendance || "University Student"}
+                  {formatAttendanceYear(record.university_attendance || "") || "University Student"}
                 </CardTitle>
               </div>
               <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
