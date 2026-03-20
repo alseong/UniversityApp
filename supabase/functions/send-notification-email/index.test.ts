@@ -21,6 +21,16 @@ Deno.test("buildEmailContent - comment_on_submission links to submission", () =>
   assertStringIncludes(html, "https://example.com/submission/sub-456");
 });
 
+Deno.test("buildEmailContent - new_reply_in_thread has correct subject", () => {
+  const { subject } = buildEmailContent("new_reply_in_thread", "sub-789", "https://example.com");
+  assertEquals(subject, "New reply in a thread you're in");
+});
+
+Deno.test("buildEmailContent - new_reply_in_thread links to submission", () => {
+  const { html } = buildEmailContent("new_reply_in_thread", "sub-789", "https://example.com");
+  assertStringIncludes(html, "https://example.com/submissions/sub-789");
+});
+
 Deno.test("resolveRecipientEmail - returns override when set", () => {
   const result = resolveRecipientEmail("real@user.com", "test@gmail.com");
   assertEquals(result, "test@gmail.com");

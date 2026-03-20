@@ -102,6 +102,36 @@ describe("CommentThread", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
+  it("shows reply button on reply comments when user is signed in", () => {
+    const comments = [
+      makeComment({ id: "c1", content: "Top comment" }),
+      makeComment({ id: "c2", parent_id: "c1", content: "A reply" }),
+    ];
+    render(<CommentThread {...defaultProps} comments={comments} />);
+    expect(screen.getAllByRole("button", { name: /reply/i })).toHaveLength(2);
+  });
+
+  it("calls onReply with parent_id when reply button clicked on a reply", async () => {
+    const onReply = vi.fn();
+    const comments = [
+      makeComment({ id: "c1", content: "Top comment" }),
+      makeComment({ id: "c2", parent_id: "c1", content: "A reply" }),
+    ];
+    render(<CommentThread {...defaultProps} comments={comments} onReply={onReply} />);
+    const replyButtons = screen.getAllByRole("button", { name: /reply/i });
+    await userEvent.click(replyButtons[1]);
+    expect(onReply).toHaveBeenCalledWith("c1");
+  });
+
+  it("shows reply input under top-level comment when replying to a reply", () => {
+    const comments = [
+      makeComment({ id: "c1", content: "Top comment" }),
+      makeComment({ id: "c2", parent_id: "c1", content: "A reply" }),
+    ];
+    render(<CommentThread {...defaultProps} comments={comments} replyingToId="c1" />);
+    expect(screen.getByPlaceholderText(/write a reply/i)).toBeInTheDocument();
+  });
+
   it("calls onCancelReply when cancel is clicked in reply input", async () => {
     const onCancelReply = vi.fn();
     const comments = [makeComment({ id: "c1" })];

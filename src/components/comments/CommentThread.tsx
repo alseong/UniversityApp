@@ -89,6 +89,15 @@ export function CommentThread({
                       </span>
                     </div>
                     <p className="text-sm">{reply.content}</p>
+                    {currentUserId && replyingToId !== reply.parent_id && (
+                      <button
+                        onClick={() => onReply(reply.parent_id!)}
+                        className="text-xs text-muted-foreground hover:text-foreground mt-1 flex items-center gap-1"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        Reply
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

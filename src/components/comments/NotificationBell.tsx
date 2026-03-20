@@ -22,6 +22,8 @@ const notificationLabel = (type: Notification["type"]): string => {
       return "commented on your submission";
     case "reply_to_comment":
       return "replied to your comment";
+    case "new_reply_in_thread":
+      return "replied in a thread you're in";
     case "like_on_submission":
       return "liked your submission";
   }

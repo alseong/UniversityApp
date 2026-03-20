@@ -7,7 +7,7 @@ type NotificationRow = {
   actor_id: string;
   comment_id: string;
   submission_id: string;
-  type: "comment_on_submission" | "reply_to_comment";
+  type: "comment_on_submission" | "reply_to_comment" | "new_reply_in_thread";
   is_read: boolean;
   created_at: string;
 };
@@ -50,6 +50,17 @@ export function buildEmailContent(
       html: wrapper(`
         <h2 style="margin:0 0 8px 0;font-size:18px;color:#111827;">Someone replied to your comment</h2>
         <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.6;">A new reply was posted on a thread you're part of. Head over to admit-me to see what they said.</p>
+        ${linkButton}
+      `),
+    };
+  }
+
+  if (notificationType === "new_reply_in_thread") {
+    return {
+      subject: "New reply in a thread you're in",
+      html: wrapper(`
+        <h2 style="margin:0 0 8px 0;font-size:18px;color:#111827;">New reply in a thread you're in</h2>
+        <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.6;">Someone replied in a thread you've participated in. Head over to admit-me to see what they said.</p>
         ${linkButton}
       `),
     };

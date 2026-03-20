@@ -93,6 +93,14 @@ describe("NotificationBell", () => {
     expect(screen.getByText(/replied to your comment/i)).toBeInTheDocument();
   });
 
+  it("shows thread-reply label for new_reply_in_thread notifications", async () => {
+    const notifications = [makeNotification({ type: "new_reply_in_thread" })];
+    mockUseNotifications.mockReturnValue(makeHookReturn({ notifications, unreadCount: 1 }));
+    render(<NotificationBell userId="user-1" />);
+    await userEvent.click(screen.getByRole("button", { name: /notifications/i }));
+    expect(screen.getByText(/replied in a thread you're in/i)).toBeInTheDocument();
+  });
+
   it("shows empty state when no notifications", async () => {
     render(<NotificationBell userId="user-1" />);
     await userEvent.click(screen.getByRole("button", { name: /notifications/i }));
