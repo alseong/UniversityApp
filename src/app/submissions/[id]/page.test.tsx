@@ -11,10 +11,11 @@ vi.mock("../../../../supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-const commentsChain = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), then: vi.fn() };
+const commentsChain = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), then: vi.fn(), maybeSingle: vi.fn() };
 commentsChain.select.mockReturnValue(commentsChain);
 commentsChain.eq.mockReturnValue(commentsChain);
 commentsChain.order.mockReturnValue(commentsChain);
+commentsChain.maybeSingle.mockResolvedValue({ data: null });
 commentsChain.then.mockImplementation((resolve: (v: unknown) => void) => resolve({ data: [], count: 0, error: null }));
 
 vi.mock("../../../../supabase/client", () => ({

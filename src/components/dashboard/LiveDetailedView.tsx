@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Search, AlertCircle, Filter, TrendingUp, Users, GraduationCap, BookOpen, Award, ChevronDown, ChevronUp, School } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CommentSection } from "@/components/comments/CommentSection";
+import ProfileCompletionModal from "@/components/profile-completion-modal";
+import LikeButton from "@/components/LikeButton";
 
 const normalizeHighSchool = (str: string) =>
   str.replace(/[^a-zA-Z]/g, "").toLowerCase();
@@ -347,6 +349,7 @@ function RecordsList({ filteredData, currentUserId }: { filteredData: any[]; cur
                 <CommentSection
                   submissionId={data.id}
                   currentUserId={currentUserId}
+                  leading={<LikeButton submissionId={data.id} userId={currentUserId} />}
                 />
               )}
             </CardContent>
@@ -364,10 +367,13 @@ type Props = {
   allRecords: AdmissionRecord[];
   liveYears: string[];
   historicalYears: string[];
+  hasSufficientData?: boolean;
+  userData?: any;
 };
 
-export default function LiveDetailedView({ allRecords, liveYears, historicalYears }: Props) {
+export default function LiveDetailedView({ allRecords, liveYears, historicalYears, hasSufficientData = true, userData = null }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
     () => liveYears[liveYears.length - 1] ?? liveYears[0] ?? ""
   );
@@ -387,6 +393,15 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
   });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createClient();
+
+  const guardedChange = (setter: (v: string) => void) => (v: string) => {
+    if (!hasSufficientData) { setShowModal(true); return; }
+    setter(v);
+  };
+  const guardedSetHighSchool = (v: string) => {
+    if (!hasSufficientData) { setShowModal(true); return; }
+    setSelectedHighSchool(v);
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -618,7 +633,7 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Program</label>
                 <SearchableSelect
                   value={validatedProgram}
-                  onValueChange={(v) => {
+                  onValueChange={guardedChange((v) => {
                     setSelectedProgram(v);
                     if (v !== "all") {
                       const available = insightsData
@@ -626,7 +641,7 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
                         .flatMap((d) => d.universities?.filter((u: any) => u.program === v).map((u: any) => u.name) || []);
                       if (!available.includes(selectedUniversity) && selectedUniversity !== "all") setSelectedUniversity("all");
                     }
-                  }}
+                  })}
                   placeholder="All Programs"
                   searchPlaceholder="Search programs..."
                   options={[{ value: "all", label: "All Programs" }, ...availablePrograms.map((p) => ({ value: p, label: p }))]}
@@ -637,7 +652,7 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
             {isLiveYear && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Application Status</label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <Select value={selectedStatus} onValueChange={guardedChange(setSelectedStatus)}>
                   <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
                     <SelectItem value="all">All Statuses</SelectItem>
@@ -652,7 +667,7 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
             {isLiveYear && (
               <div className="flex-1 min-w-[160px]">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Extracurriculars</label>
-                <Select value={selectedExtracurriculars} onValueChange={setSelectedExtracurriculars}>
+                <Select value={selectedExtracurriculars} onValueChange={guardedChange(setSelectedExtracurriculars)}>
                   <SelectTrigger><SelectValue placeholder="All Records" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Records</SelectItem>
@@ -668,7 +683,7 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">High School</label>
                 <HighSchoolSearchableSelect
                   selectedHighSchool={selectedHighSchool}
-                  setSelectedHighSchool={setSelectedHighSchool}
+                  setSelectedHighSchool={guardedSetHighSchool}
                   availableHighSchools={availableHighSchools}
                 />
               </div>
@@ -726,6 +741,12 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
       ) : (
         <HistoricalDetailedView records={historicalFilteredRecords} />
       )}
+
+      <ProfileCompletionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        userData={userData}
+      />
     </div>
   );
 }

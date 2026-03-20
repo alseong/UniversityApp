@@ -11,6 +11,7 @@ import {
 import { GraduationCap, BookOpen, TrendingUp, Award, School, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { CommentSection } from "@/components/comments/CommentSection";
+import LikeButton from "@/components/LikeButton";
 
 const APPLICATION_STATUSES = [
   { value: "received_offer_and_accepted", label: "Offer and Accepted" },
@@ -71,6 +72,7 @@ export default async function SubmissionPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
+
   const avgGrade11 = record.avg_grade_11
     ? Number(record.avg_grade_11)
     : calculateAverageGrade(record.grades || [], "grade_11");
@@ -104,7 +106,7 @@ export default async function SubmissionPage({ params }: Props) {
                   {formatAttendanceYear(record.university_attendance || "") || "University Student"}
                 </CardTitle>
               </div>
-              <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                 User: {record.user_id?.slice(-6) || "Unknown"}
               </div>
             </div>
@@ -192,7 +194,12 @@ export default async function SubmissionPage({ params }: Props) {
               </div>
             </div>
 
-            <CommentSection submissionId={record.id} currentUserId={user?.id ?? null} defaultOpen />
+            <CommentSection
+              submissionId={record.id}
+              currentUserId={user?.id ?? null}
+              defaultOpen
+              leading={<LikeButton submissionId={record.id} userId={user.id} />}
+            />
           </CardContent>
         </Card>
       </div>

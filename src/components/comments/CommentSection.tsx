@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { useComments } from "@/utils/commentHooks";
 import { postCommentAction } from "@/app/comment-actions";
@@ -10,9 +10,10 @@ type Props = {
   submissionId: string;
   currentUserId: string | null;
   defaultOpen?: boolean;
+  leading?: React.ReactNode;
 };
 
-export function CommentSection({ submissionId, currentUserId, defaultOpen = false }: Props) {
+export function CommentSection({ submissionId, currentUserId, defaultOpen = false, leading }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const { comments, count, loading, error, fetchComments } = useComments(submissionId);
@@ -38,6 +39,8 @@ export function CommentSection({ submissionId, currentUserId, defaultOpen = fals
 
   return (
     <div className="border-t border-border mt-4 pt-3">
+      <div className="flex items-center gap-3">
+        {leading}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors border border-blue-200"
@@ -52,6 +55,7 @@ export function CommentSection({ submissionId, currentUserId, defaultOpen = fals
           <ChevronDown className="w-3 h-3 ml-1" />
         )}
       </button>
+      </div>
 
       {isOpen && (
         <div id={`comments-${submissionId}`} className="mt-3">

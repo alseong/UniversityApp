@@ -24,20 +24,25 @@ admissionsChain.ilike.mockReturnValue(admissionsChain);
 admissionsChain.order.mockReturnValue(admissionsChain);
 admissionsChain.limit.mockResolvedValue({ data: mockData, error: null });
 
-const commentsChain = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), then: vi.fn() };
+const commentsChain = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), then: vi.fn(), maybeSingle: vi.fn() };
 commentsChain.select.mockReturnValue(commentsChain);
 commentsChain.eq.mockReturnValue(commentsChain);
 commentsChain.order.mockReturnValue(commentsChain);
+commentsChain.maybeSingle.mockResolvedValue({ data: null });
 commentsChain.then.mockImplementation((resolve: (v: unknown) => void) =>
   resolve({ data: [], count: 0, error: null })
 );
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 vi.mock("../../../supabase/client", () => ({
   createClient: () => ({
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } }),
     },
-    from: vi.fn((table: string) => (table === "comments" ? commentsChain : admissionsChain)),
+    from: vi.fn((table: string) => (table === "admissions_data" ? admissionsChain : commentsChain)),
   }),
 }));
 
@@ -78,6 +83,50 @@ describe("LiveDetailedView", () => {
     render(<LiveDetailedView allRecords={[]} liveYears={["2027", "2026"]} historicalYears={[]} />);
     await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
     expect(admissionsChain.ilike).toHaveBeenCalledWith("university_attendance", "%2026%");
+  });
+
+  it("shows profile completion modal when incomplete user changes a restricted filter", async () => {
+    render(
+      <LiveDetailedView
+        allRecords={[]}
+        liveYears={["2027", "2026"]}
+        historicalYears={[]}
+        hasSufficientData={false}
+        userData={null}
+      />
+    );
+    await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByText("Filters"));
+    // Program filter (second combobox) is restricted
+    await userEvent.click(screen.getAllByRole("combobox")[1]);
+    const csOptions = screen.getAllByText("CS");
+    await userEvent.click(csOptions[csOptions.length - 1]);
+
+    await waitFor(() =>
+      expect(screen.getByText("Complete Your Profile to View")).toBeInTheDocument()
+    );
+  });
+
+  it("allows university filter without profile completion modal", async () => {
+    render(
+      <LiveDetailedView
+        allRecords={[]}
+        liveYears={["2027", "2026"]}
+        historicalYears={[]}
+        hasSufficientData={false}
+        userData={null}
+      />
+    );
+    await waitFor(() => expect(screen.getByText("UofT")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByText("Filters"));
+    await userEvent.click(screen.getAllByRole("combobox")[0]);
+    const uoftOptions = screen.getAllByText("UofT");
+    await userEvent.click(uoftOptions[uoftOptions.length - 1]);
+
+    expect(screen.queryByText("Complete Your Profile to View")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("McGill")).not.toBeInTheDocument());
   });
 
   it("disables historical year tabs", async () => {
