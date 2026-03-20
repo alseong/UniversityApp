@@ -4,6 +4,7 @@ import SubmissionPage from "./page";
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }),
+  redirect: vi.fn((url: string) => { throw new Error(`NEXT_REDIRECT:${url}`); }),
 }));
 
 vi.mock("../../../../supabase/server", () => ({
@@ -25,9 +26,9 @@ vi.mock("../../../../supabase/client", () => ({
 import { createClient } from "../../../../supabase/server";
 const mockCreateClient = vi.mocked(createClient);
 
-const makeSupabase = (data: unknown, error: unknown = null) => ({
+const makeSupabase = (data: unknown, error: unknown = null, user: unknown = { id: "user-1" }) => ({
   auth: {
-    getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } }),
+    getUser: vi.fn().mockResolvedValue({ data: { user } }),
   },
   from: vi.fn().mockReturnValue({
     select: vi.fn().mockReturnThis(),
@@ -76,5 +77,12 @@ describe("SubmissionPage", () => {
     await expect(
       SubmissionPage({ params: Promise.resolve({ id: "nonexistent" }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("redirects to sign-in when user is not authenticated", async () => {
+    mockCreateClient.mockResolvedValue(makeSupabase(makeRecord(), null, null) as any);
+    await expect(
+      SubmissionPage({ params: Promise.resolve({ id: "sub-1" }) })
+    ).rejects.toThrow("NEXT_REDIRECT:/sign-in");
   });
 });

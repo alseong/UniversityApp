@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "../../../../supabase/server";
 import { formatAttendanceYear } from "@/utils/formatAttendanceYear";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +69,7 @@ export default async function SubmissionPage({ params }: Props) {
   if (!record) notFound();
 
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
 
   const avgGrade11 = record.avg_grade_11
     ? Number(record.avg_grade_11)
