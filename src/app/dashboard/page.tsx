@@ -13,7 +13,6 @@ import ViewToggle from "@/components/dashboard/ViewToggle";
 import LiveDetailedView from "@/components/dashboard/LiveDetailedView";
 import { useProcessedAdmissionData } from "@/utils/data";
 import { checkUserHasSufficientData, UserData } from "@/utils/auth";
-import ProfileCompletionModal from "@/components/profile-completion-modal";
 
 type View = "summary" | "detailed";
 
@@ -21,12 +20,11 @@ function Dashboard() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [hasSufficientData, setHasSufficientData] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [activeView, setActiveView] = useState<View>(
     searchParams.get("view") === "summary" ? "summary" : "detailed"
   );
-  const [hasSufficientData, setHasSufficientData] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -49,13 +47,7 @@ function Dashboard() {
     checkUser();
   }, [router]);
 
-  const handleViewChange = (view: View) => {
-    if (view === "detailed" && !hasSufficientData) {
-      setShowModal(true);
-      return;
-    }
-    setActiveView(view);
-  };
+  const handleViewChange = (view: View) => setActiveView(view);
 
   const { allRecords, attendingYears } = useProcessedAdmissionData();
 
@@ -68,11 +60,6 @@ function Dashboard() {
   );
 
   const liveYears = ["2027", "2026"];
-
-  const yearTabs = useMemo(
-    () => [...liveYears, ...historicalYears],
-    [historicalYears]
-  );
 
   if (loading) {
     return (
@@ -91,11 +78,6 @@ function Dashboard() {
   return (
     <>
       <DashboardNavbar />
-      <ProfileCompletionModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        userData={userData}
-      />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
           <header className="mb-8">
@@ -121,6 +103,8 @@ function Dashboard() {
               allRecords={allRecords}
               liveYears={liveYears}
               historicalYears={historicalYears}
+              hasSufficientData={hasSufficientData}
+              userData={userData}
             />
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { Comment } from "@/types/comments";
 import { formatShortId, groupCommentsByParent, formatRelativeTime } from "@/utils/comments";
+import { cn } from "@/lib/utils";
 import { MessageSquare } from "lucide-react";
 import { CommentInput } from "./CommentInput";
 
@@ -52,11 +53,14 @@ export function CommentThread({
         const commentReplies = replies.get(comment.id) ?? [];
         return (
           <div key={comment.id} className="space-y-2">
-            <div className="bg-muted/30 rounded-md p-3">
+            <div className={cn("rounded-md p-3", comment.user_id === currentUserId ? "bg-blue-50 dark:bg-blue-950/30" : "bg-muted/30")}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-mono font-medium text-primary">
                   #{formatShortId(comment.user_id)}
                 </span>
+                {comment.user_id === currentUserId && (
+                  <span className="text-xs font-medium text-primary">You</span>
+                )}
                 <span className="text-xs text-muted-foreground">
                   {formatRelativeTime(comment.created_at)}
                 </span>
@@ -78,12 +82,15 @@ export function CommentThread({
                 {commentReplies.map((reply) => (
                   <div
                     key={reply.id}
-                    className="bg-muted/20 rounded-md p-3 border-l-2 border-border"
+                    className={cn("rounded-md p-3 border-l-2 border-border", reply.user_id === currentUserId ? "bg-blue-50 dark:bg-blue-950/30" : "bg-muted/20")}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-mono font-medium text-primary">
                         #{formatShortId(reply.user_id)}
                       </span>
+                      {reply.user_id === currentUserId && (
+                        <span className="text-xs font-medium text-primary">You</span>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         {formatRelativeTime(reply.created_at)}
                       </span>

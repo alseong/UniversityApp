@@ -132,6 +132,30 @@ describe("CommentThread", () => {
     expect(screen.getByPlaceholderText(/write a reply/i)).toBeInTheDocument();
   });
 
+  it("highlights top-level comments made by the current user", () => {
+    const comments = [
+      makeComment({ id: "c1", user_id: "user-123", content: "My comment" }),
+      makeComment({ id: "c2", user_id: "other-user", content: "Their comment" }),
+    ];
+    render(<CommentThread {...defaultProps} comments={comments} currentUserId="user-123" />);
+    expect(screen.getByText("You")).toBeInTheDocument();
+  });
+
+  it("highlights replies made by the current user", () => {
+    const comments = [
+      makeComment({ id: "c1", user_id: "other-user", content: "Top comment" }),
+      makeComment({ id: "c2", parent_id: "c1", user_id: "user-123", content: "My reply" }),
+    ];
+    render(<CommentThread {...defaultProps} comments={comments} currentUserId="user-123" />);
+    expect(screen.getByText("You")).toBeInTheDocument();
+  });
+
+  it("does not show You label on comments by other users", () => {
+    const comments = [makeComment({ id: "c1", user_id: "other-user", content: "Their comment" })];
+    render(<CommentThread {...defaultProps} comments={comments} currentUserId="user-123" />);
+    expect(screen.queryByText("You")).not.toBeInTheDocument();
+  });
+
   it("calls onCancelReply when cancel is clicked in reply input", async () => {
     const onCancelReply = vi.fn();
     const comments = [makeComment({ id: "c1" })];
