@@ -24,7 +24,15 @@ admissionsChain.ilike.mockReturnValue(admissionsChain);
 admissionsChain.order.mockReturnValue(admissionsChain);
 admissionsChain.limit.mockResolvedValue({ data: mockData, error: null });
 
-const commentsChain = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), then: vi.fn(), maybeSingle: vi.fn() };
+const commentsChain: Record<string, ReturnType<typeof vi.fn>> = {
+  select: vi.fn(),
+  eq: vi.fn(),
+  order: vi.fn(),
+  then: vi.fn(),
+  maybeSingle: vi.fn(),
+  in: vi.fn(),
+  limit: vi.fn(),
+};
 commentsChain.select.mockReturnValue(commentsChain);
 commentsChain.eq.mockReturnValue(commentsChain);
 commentsChain.order.mockReturnValue(commentsChain);
@@ -32,6 +40,25 @@ commentsChain.maybeSingle.mockResolvedValue({ data: null });
 commentsChain.then.mockImplementation((resolve: (v: unknown) => void) =>
   resolve({ data: [], count: 0, error: null })
 );
+commentsChain.in.mockResolvedValue({ data: [], error: null });
+commentsChain.limit.mockReturnValue(commentsChain);
+
+const likesChain: Record<string, ReturnType<typeof vi.fn>> = {
+  select: vi.fn(),
+  eq: vi.fn(),
+  maybeSingle: vi.fn(),
+  then: vi.fn(),
+  in: vi.fn(),
+  limit: vi.fn(),
+};
+likesChain.select.mockReturnValue(likesChain);
+likesChain.eq.mockReturnValue(likesChain);
+likesChain.maybeSingle.mockResolvedValue({ data: null });
+likesChain.then.mockImplementation((resolve: (v: unknown) => void) =>
+  resolve({ data: null, count: 0, error: null })
+);
+likesChain.in.mockResolvedValue({ data: [], error: null });
+likesChain.limit.mockReturnValue(likesChain);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -42,7 +69,11 @@ vi.mock("../../../supabase/client", () => ({
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } }),
     },
-    from: vi.fn((table: string) => (table === "admissions_data" ? admissionsChain : commentsChain)),
+    from: vi.fn((table: string) => {
+      if (table === "admissions_data") return admissionsChain;
+      if (table === "likes") return likesChain;
+      return commentsChain;
+    }),
   }),
 }));
 
@@ -58,6 +89,11 @@ vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 beforeEach(() => {
   admissionsChain.limit.mockResolvedValue({ data: mockData, error: null });
   admissionsChain.ilike.mockClear();
+  commentsChain.in.mockResolvedValue({ data: [], error: null });
+  likesChain.in.mockResolvedValue({ data: [], error: null });
+  likesChain.then.mockImplementation((resolve: (v: unknown) => void) =>
+    resolve({ data: null, count: 0, error: null })
+  );
   mockObserve.mockClear();
   mockDisconnect.mockClear();
 });
@@ -150,6 +186,26 @@ describe("LiveDetailedView", () => {
     );
     expect(screen.queryByText("University 14")).toBeInTheDocument();
     expect(screen.queryByText("University 15")).not.toBeInTheDocument();
+  });
+
+  it("sorts submissions by engagement (comments + likes) descending by default", async () => {
+    // sub-0 (UofT): 0 comments, 0 likes → score 0
+    // sub-1 (McGill): 1 comment, 2 likes → score 3
+    // McGill should appear before UofT
+    commentsChain.then.mockImplementationOnce((resolve: (v: unknown) => void) =>
+      resolve({ data: [{ submission_id: "sub-1" }], error: null })
+    );
+    likesChain.then.mockImplementationOnce((resolve: (v: unknown) => void) =>
+      resolve({ data: [{ submission_id: "sub-1" }, { submission_id: "sub-1" }], error: null })
+    );
+
+    render(<LiveDetailedView allRecords={[]} liveYears={["2026", "2027"]} historicalYears={[]} />);
+    await waitFor(() => expect(screen.getByText("McGill")).toBeInTheDocument());
+
+    const uoftEl = screen.getByText("UofT");
+    const mcgillEl = screen.getByText("McGill");
+    // DOCUMENT_POSITION_PRECEDING (2): mcgillEl precedes uoftEl → McGill rendered first
+    expect(uoftEl.compareDocumentPosition(mcgillEl) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
   });
 
   it("resets to first page when filters change", async () => {

@@ -37,6 +37,23 @@ import LikeButton from "@/components/LikeButton";
 const normalizeHighSchool = (str: string) =>
   str.replace(/[^a-zA-Z]/g, "").toLowerCase();
 
+const buildCounts = (rows: { submission_id: string }[]): Record<string, number> =>
+  rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.submission_id] = (acc[row.submission_id] || 0) + 1;
+    return acc;
+  }, {});
+
+const sortByEngagement = (
+  submissions: any[],
+  commentCounts: Record<string, number>,
+  likeCounts: Record<string, number>
+): any[] =>
+  [...submissions].sort((a, b) => {
+    const scoreA = (commentCounts[a.id] || 0) + (likeCounts[a.id] || 0);
+    const scoreB = (commentCounts[b.id] || 0) + (likeCounts[b.id] || 0);
+    return scoreB - scoreA;
+  });
+
 const APPLICATION_STATUSES = [
   { value: "received_offer_and_accepted", label: "Offer and Accepted" },
   { value: "received_offer_and_rejected", label: "Offer and Rejected" },
@@ -420,8 +437,20 @@ export default function LiveDetailedView({ allRecords, liveYears, historicalYear
           .ilike("university_attendance", `%${selectedYear}%`)
           .limit(10000);
         if (err) throw err;
-        setInsightsData(data || []);
-        setFilteredData(data || []);
+
+        const submissions = data || [];
+
+        const [commentsResult, likesResult] = await Promise.all([
+          supabase.from("comments").select("submission_id").limit(50000),
+          supabase.from("likes").select("submission_id").limit(50000),
+        ]);
+
+        const commentCounts = buildCounts((commentsResult.data || []) as { submission_id: string }[]);
+        const likeCounts = buildCounts((likesResult.data || []) as { submission_id: string }[]);
+        const sorted = sortByEngagement(submissions, commentCounts, likeCounts);
+
+        setInsightsData(sorted);
+        setFilteredData(sorted);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch data");
       } finally {
